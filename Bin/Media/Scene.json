@@ -1,0 +1,51 @@
+// Scene
+{
+  // Global parameters
+  "CameraFocus": [ 0.0, 12.5, 0.0 ],
+  "CameraDistance": 27.0,
+
+  "Lights": [
+    {
+      "Position": [ 80.0, 500.0, -490.0 ],
+      "Range": 25.0,
+      "Color": [ 1.0, 0.95, 0.76 ],
+      "Intensity": 7.0
+    }
+  ],
+
+  "AmbientColor": [ 0.6, 0.8, 1.0 ],
+  "AmbientIntensity": 1.6,
+
+  // Characters
+  "SkinnedMeshes": [
+    {
+      "Mesh": "Media/Bright/Stars.sdkmesh",
+      "Anim": "Media/Bright/Stars.sdkmesh_anim"
+    }
+  ],
+  "Characters": [
+    {
+      "Name": "Stars",
+      "MeshIndex": 0,
+      "Position": [ 0.0, 5.0, 0.0 ],
+      "RotationAngle": -0.5
+    }
+  ],
+
+  // Static models
+  "MapSize": 512,
+  "OctreeLooseCoeff": 0.97,
+  "ShadowMapSize": 1360,
+
+  "StaticMeshes": [ "Media/Island/Island.sdkmesh" ],
+  "StaticModels": [
+    {
+      "Name": "Island",
+      "MeshIndex": 0
+    }
+  ],
+
+  // Natural environment
+  "Water": 1,
+  "SkyTexture": "Media/sky.dds"
+}
