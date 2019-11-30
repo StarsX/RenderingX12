@@ -11,16 +11,15 @@
 *.userprefs
 
 # Build results
-//[Dd]ebug/
+[Dd]ebug/
 [Dd]ebugPublic/
-//[Rr]elease/
+[Rr]elease/
 [Rr]eleases/
-//x64/
+x64/
 x86/
 bld/
 [Oo]bj/
 [Ll]og/
-*.tlog/
 
 # Visual Studio 2015 cache/options directory
 .vs/
@@ -53,7 +52,7 @@ artifacts/
 *.meta
 *.obj
 *.pch
-//*.pdb
+*.pdb
 *.pgc
 *.pgd
 *.res
@@ -71,7 +70,6 @@ artifacts/
 *.pidb
 *.svclog
 *.scc
-*.vcxproj.FileListAbsolute.txt
 
 # Chutzpah Test files
 _Chutzpah*
