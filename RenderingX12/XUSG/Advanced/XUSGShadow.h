@@ -39,11 +39,11 @@ namespace XUSG
 			const DirectX::XMFLOAT4X4& proj, const DirectX::XMFLOAT4& lightPt);
 
 		void SetViewport(const CommandList& commandList, uint8_t i);
+		void GetShadowMatrices(DirectX::XMMATRIX* pShadows) const;
 
 		DepthStencil& GetShadowMap();
 		const DescriptorTable& GetShadowTable() const;
 		const Framebuffer& GetFramebuffer() const;
-		std::vector<DirectX::XMMATRIX> GetShadowMatrices() const;
 		DirectX::FXMMATRIX GetShadowMatrix(uint8_t i) const;
 		DirectX::FXMMATRIX GetShadowViewMatrix() const;
 
