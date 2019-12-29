@@ -240,24 +240,21 @@ void RenderingX::CreateResources()
 
 	// Create TAA RTs
 	for (auto n = 0u; n < 2; ++n)
-		N_RETURN(m_rtTAAs[n].Create(m_device, m_width, m_height, FormatLDR, 1,
-			ResourceFlag::NONE, 1, 1, n != m_frameParity ? ResourceState::PIXEL_SHADER_RESOURCE :
-			ResourceState::COMMON, nullptr, false, (L"TemporalAA_RT" + to_wstring(n)).c_str()),
-			ThrowIfFailed(E_FAIL));
+		N_RETURN(m_rtTAAs[n].Create(m_device, m_width, m_height, FormatLDR, 1, ResourceFlag::NONE,
+			1, 1, nullptr, false, (L"TemporalAA_RT" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
 
 	// Create HDR RT
-	N_RETURN(m_rtHDR.Create(m_device, m_width, m_height, FormatHDR, 1,
-		ResourceFlag::NONE, 1, 1, ResourceState::COMMON, nullptr, false, L"HDR_RT"),
-		ThrowIfFailed(E_FAIL));
+	N_RETURN(m_rtHDR.Create(m_device, m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
+		1, 1, nullptr, false, L"HDR_RT"), ThrowIfFailed(E_FAIL));
 
 	// Create LDR RT
-	N_RETURN(m_rtLDR.Create(m_device, m_width, m_height, FormatLDR, 1,
-		ResourceFlag::NONE, 1, 1, ResourceState::COMMON, nullptr, false, L"LDR_RT"),
+	N_RETURN(m_rtLDR.Create(m_device, m_width, m_height, FormatLDR, 1, ResourceFlag::NONE,
+		1, 1, nullptr, false, L"LDR_RT"),
 		ThrowIfFailed(E_FAIL));
 
 	// Create a DSV
 	N_RETURN(m_depth.Create(m_device, m_width, m_height, Format::UNKNOWN, ResourceFlag::NONE,
-		1, 1, 1, ResourceState::COMMON, 1.0f, 0, false, L"Depth"), ThrowIfFailed(E_FAIL));
+		1, 1, 1, 1.0f, 0, false, L"Depth"), ThrowIfFailed(E_FAIL));
 
 	// Set the 3D rendering viewport and scissor rectangle to target the entire window.
 	m_viewport = Viewport(0.0f, 0.0f, static_cast<float>(m_width), static_cast<float>(m_height));
