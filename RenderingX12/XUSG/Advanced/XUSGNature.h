@@ -25,12 +25,12 @@ namespace XUSG
 			const std::wstring& skyTexture, std::vector<Resource>& uploaders,
 			bool renderWater, Format rtvFormat = Format::R11G11B10_FLOAT,
 			Format dsvFormat = Format::D24_UNORM_S8_UINT);
-		bool CreateResources(const DepthStencil& depth, Format rtFormat);
+		bool CreateResources(ResourceBase* pSceneColor, const DepthStencil& depth);
 
 		void Update(uint8_t frameIndex, DirectX::FXMMATRIX* pViewProj, DirectX::FXMMATRIX* pWorld = nullptr);
 		void SetGlobalCBVTables(DescriptorTable cbvImmutable, DescriptorTable cbvPerFrameTable);
 		void RenderSky(const CommandList& commandList, bool reset = false);
-		void RenderWater(const CommandList& commandList, ResourceBase* pSrcResource, const Framebuffer& framebuffer,
+		void RenderWater(const CommandList& commandList, const Framebuffer& framebuffer,
 			uint32_t& numBarriers, ResourceBarrier* pBarriers, bool reset = false);
 
 		Descriptor GetSkySRV() const;
@@ -101,13 +101,12 @@ namespace XUSG
 			NUM_CBV_TABLE = CBV_MATRICES + FrameCount
 		};
 
-		bool createGBuffers(const DepthStencil& depth, Format rtFormat);
+		bool createGBuffers(ResourceBase* pSceneColor, const DepthStencil& depth);
 		bool createConstantBuffer();
 		bool loadTextures(const CommandList& commandList, const std::wstring& skyTexture, std::vector<Resource>& uploaders);
 		bool createPipelineLayouts(bool renderWater);
 		bool createPipelines(bool renderWater, Format rtvFormat, Format dsvFormat);
-		void setWaterResources(const CommandList& commandList, ResourceBase* pSrcResource,
-			uint32_t& numBarriers, ResourceBarrier* pBarriers);
+		void setWaterResources(const CommandList& commandList, uint32_t& numBarriers, ResourceBarrier* pBarriers);
 		void renderReflection(const CommandList& commandList);
 		void renderWater(const CommandList& commandList, const Framebuffer& framebuffer);
 
@@ -120,6 +119,7 @@ namespace XUSG
 		std::shared_ptr<DescriptorTableCache>		m_descriptorTableCache;
 
 		std::shared_ptr<ResourceBase>				m_skyTexture;
+		ResourceBase*	m_pSceneColor;
 
 		Viewport		m_viewport;
 		RectRange		m_scissorRect;
