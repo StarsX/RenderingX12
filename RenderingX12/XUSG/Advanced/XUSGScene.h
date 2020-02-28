@@ -149,8 +149,14 @@ namespace XUSG
 			CBV_IMMUTABLE,
 			CBV_PER_FRAME_VS,
 			CBV_PER_FRAME_PS	= CBV_PER_FRAME_VS + FrameCount,	// Window size dependent
+#if TEMPORAL_AA
+			CBV_TEMPORAL_BIAS0	= CBV_PER_FRAME_PS + FrameCount,
+			CBV_TEMPORAL_BIAS,
 
+			NUM_CBV_TABLE		= CBV_TEMPORAL_BIAS + FrameCount
+#else
 			NUM_CBV_TABLE		= CBV_PER_FRAME_PS + FrameCount
+#endif
 		};
 
 	protected:
@@ -180,7 +186,7 @@ namespace XUSG
 		virtual void renderAlpha(const CommandList& commandList);
 		virtual void renderGBuffersOpaque(const CommandList& commandList, uint32_t& numBarriers, ResourceBarrier* pBarriers);
 		virtual void renderGBuffersAlpha(const CommandList& commandList, uint32_t& numBarriers, ResourceBarrier* pBarriers);
-		virtual void renderDepth(const CommandList& commandList, uint8_t space, const DirectX::XMFLOAT2& projBias);
+		virtual void renderDepth(const CommandList& commandList, uint8_t space, uint8_t temporalBiasIdx);
 		virtual void renderShadowMap(const CommandList& commandList);
 		virtual void deferredShade(const CommandList& commandList, bool alpha, uint32_t& numBarriers, ResourceBarrier* pBarriers);
 		virtual void ambientOcclusion(const CommandList& commandList);
@@ -243,6 +249,9 @@ namespace XUSG
 
 		ConstantBuffer		m_cbImmutable;
 		ConstantBuffer		m_cbGlobal;
+#if TEMPORAL_AA
+		ConstantBuffer		m_cbTemporalBias;
+#endif
 		DescriptorTable		m_cbvTables[NUM_CBV_TABLE];
 		DescriptorTable		m_samplerTable;
 	};

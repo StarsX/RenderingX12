@@ -12,6 +12,17 @@ namespace XUSG
 		public Model
 	{
 	public:
+		enum DescriptorTableSlot : uint8_t
+		{
+			PER_OBJECT	= VARIABLE_SLOT,
+			PER_FRAME,
+			SAMPLERS,
+			MATERIAL,
+			SHADOW_MAP,
+			IMMUATABLE,
+			ALPHA_REF	= SHADOW_MAP
+		};
+
 		struct Vegetation
 		{
 			uint32_t			m_isVeg;
@@ -53,14 +64,6 @@ namespace XUSG
 			const TextureCache& textureCache);
 
 	protected:
-		enum InternalDescriptorTableSlot : uint8_t
-		{
-			PER_OBJECT	= BASE_SLOT,
-			SAMPLERS	= PER_OBJECT + 2,
-			MATERIAL,
-			SHADOW_ALPHA_REF
-		};
-
 		bool createConstantBuffers();
 		bool createPipelineLayouts();
 		bool createPipelines(const InputLayout& inputLayout, const Format* rtvFormats,
@@ -71,14 +74,5 @@ namespace XUSG
 		ConstantBuffer		m_cbBoundBox;
 
 		std::vector<DescriptorTable> m_cbvPerObjectTables;
-
-	public:
-		enum DescriptorTableSlot : uint8_t
-		{
-			PER_FRAME	= PER_OBJECT + 1,
-			SHADOW_MAP	= SHADOW_ALPHA_REF,
-			ALPHA_REF	= SHADOW_ALPHA_REF,
-			IMMUATABLE
-		};
 	};
 }
