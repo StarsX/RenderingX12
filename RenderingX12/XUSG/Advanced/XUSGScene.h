@@ -248,7 +248,7 @@ namespace XUSG
 		Pipeline			m_pipelines[NUM_PIPELINE];
 
 		ConstantBuffer		m_cbImmutable;
-		ConstantBuffer		m_cbGlobal;
+		ConstantBuffer		m_cbPerFrame;
 #if TEMPORAL_AA
 		ConstantBuffer		m_cbTemporalBias;
 #endif
