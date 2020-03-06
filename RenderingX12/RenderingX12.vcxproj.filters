@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Shaders">
-      <UniqueIdentifier>{16702f4c-93ef-432c-8470-128f6370b0ef}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Media">
       <UniqueIdentifier>{d5e634a3-cb4c-4360-9a62-de24d9095e40}</UniqueIdentifier>
     </Filter>
@@ -169,14 +166,6 @@
     <None Include="..\Bin\Media\Scene.json">
       <Filter>Media</Filter>
     </None>
-    <None Include="Content\Shaders\SHCommon.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Content\Shaders\PSSimpleToneMap.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RenderingX12.rc">

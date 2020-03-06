@@ -11,8 +11,6 @@
 
 #include "RenderingX.h"
 
-#define POST_PROCESS	1
-
 using namespace std;
 using namespace XUSG;
 
@@ -136,38 +134,12 @@ void RenderingX::LoadAssets()
 			ThrowIfFailed(E_FAIL));
 	}
 
-#if POST_PROCESS
 	{
 		m_postprocess = make_unique<Postprocess>(m_device);
 		N_RETURN(m_postprocess->Init(m_shaderPool, m_graphicsPipelineCache,
 			m_computePipelineCache, m_pipelineLayoutCache, m_descriptorTableCache,
 			FormatHDR, FormatLDR), ThrowIfFailed(E_FAIL));
 	}
-#else
-	// Pipeline for simple tone mapping
-	{
-		// Create pipeline layout
-		Util::PipelineLayout utilPipelineLayout;
-		utilPipelineLayout.SetRange(0, DescriptorType::SRV, 1, 0);
-		utilPipelineLayout.SetShaderStage(0, Shader::Stage::PS);
-		X_RETURN(m_pipelineLayout, utilPipelineLayout.GetPipelineLayout(*m_pipelineLayoutCache,
-			PipelineLayoutFlag::ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT, L"SimpleToneMapLayout"), ThrowIfFailed(E_FAIL));
-
-		// Load shader
-		N_RETURN(m_shaderPool->CreateShader(Shader::Stage::PS, PS_TONE_MAP, L"PSSimpleToneMap.cso"), ThrowIfFailed(E_FAIL));
-
-		// Create pipeline
-		Graphics::State state;
-		state.SetPipelineLayout(m_pipelineLayout);
-		state.SetShader(Shader::Stage::VS, m_shaderPool->GetShader(Shader::Stage::VS, VS_SCREEN_QUAD));
-		state.SetShader(Shader::Stage::PS, m_shaderPool->GetShader(Shader::Stage::PS, PS_TONE_MAP));
-		state.IASetPrimitiveTopologyType(PrimitiveTopologyType::TRIANGLE);
-		state.DSSetState(Graphics::DepthStencilPreset::DEPTH_STENCIL_NONE, *m_graphicsPipelineCache);
-		state.OMSetNumRenderTargets(1);
-		state.OMSetRTVFormat(0, FormatLDR);
-		X_RETURN(m_pipeline, state.GetPipeline(*m_graphicsPipelineCache, L"SimpleToneMap"), ThrowIfFailed(E_FAIL));
-	}
-#endif
 
 	// Close the command list and execute it to begin the initial GPU setup.
 	ThrowIfFailed(m_commandList.Close());
@@ -272,7 +244,6 @@ void RenderingX::ResizeAssets()
 	N_RETURN(m_scene->ChangeWindowSize(m_commandList, uploaders, m_rtHDR, m_depth), ThrowIfFailed(E_FAIL));
 
 	// Post process
-#if POST_PROCESS
 	{
 		N_RETURN(m_postprocess->ChangeWindowSize(m_rtHDR, m_scene->GetGBufferSRV(Scene::ALBEDO_IDX)), ThrowIfFailed(E_FAIL));
 
@@ -293,12 +264,6 @@ void RenderingX::ResizeAssets()
 			X_RETURN(m_srvTables[SRV_ANTIALIASED + n], srvTable.GetCbvSrvUavTable(*m_descriptorTableCache), ThrowIfFailed(E_FAIL));
 		}
 	}
-#else
-	// Create Descriptor table
-	Util::DescriptorTable srvTable;
-	srvTable.SetDescriptors(0, 1, &m_rtHDR.GetSRV(), Postprocess::RESIZABLE_POOL);
-	X_RETURN(m_srvTables[SRV_HDR], srvTable.GetCbvSrvUavTable(*m_descriptorTableCache), ThrowIfFailed(E_FAIL));
-#endif
 
 	// Close the command list and execute it to begin the initial GPU setup.
 	ThrowIfFailed(m_commandList.Close());
@@ -341,10 +306,8 @@ void RenderingX::OnUpdate()
 	const auto view = XMLoadFloat4x4(&m_view);
 	const auto proj = XMLoadFloat4x4(&m_proj);
 	m_scene->Update(m_frameIndex, time, timeStep, view, proj, eyePt);
-#if POST_PROCESS
-	m_postprocess->Update(m_scene->GetCBVTable(0),
+	m_postprocess->Update(m_scene->GetCBVTable(Scene::CBV_IMMUTABLE),
 		m_scene->GetCBVTable(Scene::CBV_PER_FRAME_PS + m_frameIndex), timeStep);
-#endif
 }
 
 // Render the scene.
@@ -551,9 +514,8 @@ void RenderingX::PopulateCommandList()
 	//m_commandList.ClearRenderTargetView(m_renderTargets[m_frameIndex].GetRTV(), clearColor);
 	m_scene->Render(m_commandList);
 
-	ResourceBarrier barriers[2];
-#if POST_PROCESS
 	// Postprocessing
+	ResourceBarrier barriers[2];
 	m_postprocess->Render(m_commandList, m_rtLDR, m_rtHDR, m_rtLDR.GetRTV(), m_srvTables[SRV_HDR]);
 
 	// Temporal AA
@@ -568,17 +530,6 @@ void RenderingX::PopulateCommandList()
 	m_commandList.Barrier(numBarriers, barriers);
 	m_postprocess->Unsharp(m_commandList, &m_renderTargets[m_frameIndex].GetRTV(), m_srvTables[SRV_ANTIALIASED + m_frameParity]);
 	m_frameParity = !m_frameParity;
-#else
-	auto numBarriers = m_rtHDR.SetBarrier(barriers, ResourceState::PIXEL_SHADER_RESOURCE);
-	numBarriers = m_renderTargets[m_frameIndex].SetBarrier(barriers, ResourceState::RENDER_TARGET, numBarriers);
-	m_commandList.Barrier(numBarriers, barriers);
-	m_commandList.OMSetRenderTargets(1, m_rtvTables[RTV_SWC + m_frameIndex], nullptr);
-	m_commandList.SetGraphicsPipelineLayout(m_pipelineLayout);
-	m_commandList.SetGraphicsDescriptorTable(0, m_srvTables[SRV_HDR]);
-	m_commandList.SetPipelineState(m_pipeline);
-	m_commandList.IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_commandList.Draw(3, 1, 0, 0);
-#endif
 
 	// Indicate that the back buffer will now be used to present.
 	numBarriers = m_renderTargets[m_frameIndex].SetBarrier(barriers, ResourceState::PRESENT);
