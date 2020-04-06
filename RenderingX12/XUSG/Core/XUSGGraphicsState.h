@@ -4,77 +4,34 @@
 
 #pragma once
 
-#include "XUSGShader.h"
+#include "XUSG.h"
 #include "XUSGInputLayout.h"
 
 namespace XUSG
 {
 	namespace Graphics
 	{
-		enum BlendPreset : uint8_t
+		struct Key
 		{
-			DEFAULT_OPAQUE,
-			PREMULTIPLITED,
-			ADDTIVE,
-			NON_PRE_MUL,
-			NON_PREMUL_RT0,
-			ALPHA_TO_COVERAGE,
-			ACCUMULATIVE,
-			AUTO_NON_PREMUL,
-			ZERO_ALPHA_PREMUL,
-			MULTIPLITED,
-			WEIGHTED_PREMUL,
-			WEIGHTED_PREMUL_PER_RT,
-			WEIGHTED_PER_RT,
-			SELECT_MIN,
-			SELECT_MAX,
-
-			NUM_BLEND_PRESET
+			void* PipelineLayout;
+			void* Shaders[Shader::Stage::NUM_GRAPHICS];
+			void* Blend;
+			void* Rasterizer;
+			void* DepthStencil;
+			void* InputLayout;
+			PrimitiveTopologyType PrimTopologyType;
+			uint8_t	NumRenderTargets;
+			Format RTVFormats[8];
+			Format	DSVFormat;
+			uint8_t	SampleCount;
 		};
 
-		enum RasterizerPreset : uint8_t
-		{
-			CULL_BACK,
-			CULL_NONE,
-			CULL_FRONT,
-			FILL_WIREFRAME,
-
-			NUM_RS_PRESET
-		};
-
-		enum DepthStencilPreset : uint8_t
-		{
-			DEFAULT_LESS,
-			DEPTH_STENCIL_NONE,
-			DEPTH_READ_LESS,
-			DEPTH_READ_LESS_EQUAL,
-			DEPTH_READ_EQUAL,
-
-			NUM_DS_PRESET
-		};
-
-		class PipelineCache;
-
-		class State
+		class State_DX12 :
+			public State
 		{
 		public:
-			struct Key
-			{
-				void* PipelineLayout;
-				void* Shaders[Shader::Stage::NUM_GRAPHICS];
-				void* Blend;
-				void* Rasterizer;
-				void* DepthStencil;
-				void* InputLayout;
-				PrimitiveTopologyType PrimTopologyType;
-				uint8_t	NumRenderTargets;
-				Format RTVFormats[8];
-				Format	DSVFormat;
-				uint8_t	SampleCount;
-			};
-
-			State();
-			virtual ~State();
+			State_DX12();
+			virtual ~State_DX12();
 
 			void SetPipelineLayout(const PipelineLayout& layout);
 			void SetShader(Shader::Stage stage, Blob shader);
@@ -105,12 +62,13 @@ namespace XUSG
 			std::string m_key;
 		};
 
-		class PipelineCache
+		class PipelineCache_DX12 :
+			public PipelineCache
 		{
 		public:
-			PipelineCache();
-			PipelineCache(const Device& device);
-			virtual ~PipelineCache();
+			PipelineCache_DX12();
+			PipelineCache_DX12(const Device& device);
+			virtual ~PipelineCache_DX12();
 
 			void SetDevice(const Device& device);
 			void SetPipeline(const std::string& key, const Pipeline& pipeline);
@@ -127,7 +85,7 @@ namespace XUSG
 			const DepthStencil& GetDepthStencil(DepthStencilPreset preset);
 
 		protected:
-			Pipeline createPipeline(const State::Key* pKey, const wchar_t* name);
+			Pipeline createPipeline(const Key* pKey, const wchar_t* name);
 			Pipeline getPipeline(const std::string& key, const wchar_t* name);
 
 			Device m_device;
@@ -142,6 +100,34 @@ namespace XUSG
 			std::function<Blend(uint8_t)>	m_pfnBlends[NUM_BLEND_PRESET];
 			std::function<Rasterizer()>		m_pfnRasterizers[NUM_RS_PRESET];
 			std::function<DepthStencil()>	m_pfnDepthStencils[NUM_DS_PRESET];
+
+			static DepthStencil DepthStencilDefault();
+			static DepthStencil DepthStencilNone();
+			static DepthStencil DepthRead();
+			static DepthStencil DepthReadLessEqual();
+			static DepthStencil DepthReadEqual();
+
+			static Blend DefaultOpaque(uint8_t n);
+			static Blend Premultiplied(uint8_t n);
+			static Blend Additive(uint8_t n);
+			static Blend NonPremultiplied(uint8_t n);
+			static Blend NonPremultipliedRT0(uint8_t n);
+			static Blend AlphaToCoverage(uint8_t n);
+			static Blend Accumulative(uint8_t n);
+			static Blend AutoNonPremultiplied(uint8_t n);
+			static Blend ZeroAlphaNonPremultiplied(uint8_t n);
+			static Blend Multiplied(uint8_t n);
+			static Blend WeightedPremul(uint8_t n);
+			static Blend WeightedPremulPerRT(uint8_t n);
+			static Blend WeightedPerRT(uint8_t n);
+			static Blend SelectMin(uint8_t n);
+			static Blend SelectMax(uint8_t n);
+
+			static Rasterizer RasterizerDefault();
+			static Rasterizer CullBack();
+			static Rasterizer CullNone();
+			static Rasterizer CullFront();
+			static Rasterizer CullWireframe();
 		};
 	}
 }

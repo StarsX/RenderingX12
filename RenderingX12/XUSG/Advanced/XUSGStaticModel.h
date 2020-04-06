@@ -8,7 +8,7 @@
 
 namespace XUSG
 {
-	class StaticModel :
+	class DLL_EXPORT StaticModel :
 		public Model
 	{
 	public:
@@ -42,21 +42,21 @@ namespace XUSG
 		virtual ~StaticModel();
 
 		bool Init(const InputLayout& inputLayout, const std::shared_ptr<SDKMesh>& mesh,
-			const std::shared_ptr<ShaderPool>& shaderPool,
-			const std::shared_ptr<Graphics::PipelineCache>& pipelineCache,
-			const std::shared_ptr<PipelineLayoutCache>& pipelineLayoutCache,
-			const std::shared_ptr<DescriptorTableCache>& descriptorTableCache,
+			const ShaderPool::sptr& shaderPool,
+			const Graphics::PipelineCache::sptr& pipelineCache,
+			const PipelineLayoutCache::sptr& pipelineLayoutCache,
+			const DescriptorTableCache::sptr& descriptorTableCache,
 			const Format* rtvFormats = nullptr, uint32_t numRTVs = 0,
 			Format dsvFormat = Format::UNKNOWN, Format shadowFormat = Format::UNKNOWN);
-		void CreateBoundCBuffer();
+		//void CreateBoundCBuffer();
 		void Update(uint8_t frameIndex);
 		void Update(uint8_t frameIndex, DirectX::CXMMATRIX viewProj, DirectX::CXMMATRIX world,
 			DirectX::FXMMATRIX* pShadowView = nullptr, DirectX::FXMMATRIX* pShadows = nullptr,
 			uint8_t numShadows = 0, bool isTemporal = true);
-		void Render(const CommandList& commandList, uint32_t mesh, PipelineLayoutIndex layout,
+		void Render(const CommandList* pCommandList, uint32_t mesh, PipelineLayoutIndex layout,
 			SubsetFlags subsetFlags = SUBSET_FULL, uint8_t matrixTableIndex = CBV_MATRICES,
 			uint32_t numInstances = 1);
-		void RenderBoundary(uint32_t mesh, const DirectX::XMFLOAT4* pTBox);
+		//void RenderBoundary(uint32_t mesh, const DirectX::XMFLOAT4* pTBox);
 
 		const std::shared_ptr<SDKMesh>& GetMesh() const;
 
@@ -70,8 +70,8 @@ namespace XUSG
 			uint32_t numRTVs, Format dsvFormat, Format shadowFormat);
 		bool createDescriptorTables();
 
-		ConstantBuffer		m_cbVegetations;
-		ConstantBuffer		m_cbBoundBox;
+		ConstantBuffer::uptr m_cbVegetations;
+		ConstantBuffer::uptr m_cbBoundBox;
 
 		std::vector<DescriptorTable> m_cbvPerObjectTables;
 	};

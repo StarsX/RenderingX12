@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "XUSGType.h"
+#include "XUSG.h"
 
 namespace XUSG
 {

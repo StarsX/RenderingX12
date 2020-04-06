@@ -97,20 +97,21 @@ void RenderingX::LoadPipeline()
 		N_RETURN(m_device->GetCommandAllocator(m_commandAllocators[n], CommandListType::DIRECT), ThrowIfFailed(E_FAIL));
 
 	// Create descriptor table cache.
-	m_descriptorTableCache = make_shared<DescriptorTableCache>(m_device, L"DescriptorTableCache");
+	m_descriptorTableCache = DescriptorTableCache::MakeShared(m_device, L"DescriptorTableCache");
 
 }
 
 // Load the sample assets.
 void RenderingX::LoadAssets()
 {
-	m_shaderPool = make_shared<ShaderPool>();
-	m_graphicsPipelineCache = make_shared<Graphics::PipelineCache>(m_device);
-	m_computePipelineCache = make_shared<Compute::PipelineCache>(m_device);
-	m_pipelineLayoutCache = make_shared<PipelineLayoutCache>(m_device);
+	m_shaderPool = ShaderPool::MakeShared();
+	m_graphicsPipelineCache = Graphics::PipelineCache::MakeShared(m_device);
+	m_computePipelineCache = Compute::PipelineCache::MakeShared(m_device);
+	m_pipelineLayoutCache = PipelineLayoutCache::MakeShared(m_device);
 
 	// Create the command list.
-	N_RETURN(m_device->GetCommandList(m_commandList.GetCommandList(), 0, CommandListType::DIRECT,
+	m_commandList = CommandList::MakeUnique();
+	N_RETURN(m_device->GetCommandList(m_commandList->GetCommandList(), 0, CommandListType::DIRECT,
 		m_commandAllocators[m_frameIndex], nullptr), ThrowIfFailed(E_FAIL));
 
 	// Load scene asset
@@ -128,7 +129,7 @@ void RenderingX::LoadAssets()
 		// Create scene
 		m_scene = make_unique<Scene>(m_device);
 		//m_scene->SetRenderTarget(m_rtHDR, m_depth);
-		N_RETURN(m_scene->LoadAssets(&sceneReader, m_commandList, m_shaderPool,
+		N_RETURN(m_scene->LoadAssets(&sceneReader, m_commandList.get(), m_shaderPool,
 			m_graphicsPipelineCache, m_computePipelineCache, m_pipelineLayoutCache,
 			m_descriptorTableCache, uploaders, FormatHDR, FormatDepth, m_useIBL),
 			ThrowIfFailed(E_FAIL));
@@ -142,8 +143,8 @@ void RenderingX::LoadAssets()
 	}
 
 	// Close the command list and execute it to begin the initial GPU setup.
-	ThrowIfFailed(m_commandList.Close());
-	BaseCommandList* const ppCommandLists[] = { m_commandList.GetCommandList().get() };
+	ThrowIfFailed(m_commandList->Close());
+	BaseCommandList* const ppCommandLists[] = { m_commandList->GetCommandList().get() };
 	m_commandQueue->ExecuteCommandLists(static_cast<uint32_t>(size(ppCommandLists)), ppCommandLists);
 
 	// Create synchronization objects and wait until assets have been uploaded to the GPU.
@@ -209,24 +210,33 @@ void RenderingX::CreateResources()
 	// Obtain the back buffers for this window which will be the final render targets
 	// and create render target views for each of them.
 	for (auto n = 0u; n < FrameCount; ++n)
-		N_RETURN(m_renderTargets[n].CreateFromSwapChain(m_device, m_swapChain, n), ThrowIfFailed(E_FAIL));
+	{
+		m_renderTargets[n] = RenderTarget::MakeUnique();
+		N_RETURN(m_renderTargets[n]->CreateFromSwapChain(m_device, m_swapChain, n), ThrowIfFailed(E_FAIL));
+	}
 
 	// Create TAA RTs
 	for (auto n = 0u; n < 2; ++n)
-		N_RETURN(m_rtTAAs[n].Create(m_device, m_width, m_height, FormatLDR, 1, ResourceFlag::NONE,
+	{
+		m_rtTAAs[n] = RenderTarget::MakeUnique();
+		N_RETURN(m_rtTAAs[n]->Create(m_device, m_width, m_height, FormatLDR, 1, ResourceFlag::NONE,
 			1, 1, nullptr, false, (L"TemporalAA_RT" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
+	}
 
 	// Create HDR RT
-	N_RETURN(m_rtHDR.Create(m_device, m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
+	m_rtHDR = RenderTarget::MakeUnique();
+	N_RETURN(m_rtHDR->Create(m_device, m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
 		1, 1, nullptr, false, L"HDR_RT"), ThrowIfFailed(E_FAIL));
 
 	// Create LDR RT
-	N_RETURN(m_rtLDR.Create(m_device, m_width, m_height, FormatLDR, 1, ResourceFlag::NONE,
+	m_rtLDR = RenderTarget::MakeUnique();
+	N_RETURN(m_rtLDR->Create(m_device, m_width, m_height, FormatLDR, 1, ResourceFlag::NONE,
 		1, 1, nullptr, false, L"LDR_RT"),
 		ThrowIfFailed(E_FAIL));
 
 	// Create a DSV
-	N_RETURN(m_depth.Create(m_device, m_width, m_height, Format::UNKNOWN, ResourceFlag::NONE,
+	m_depth = DepthStencil::MakeUnique();
+	N_RETURN(m_depth->Create(m_device, m_width, m_height, Format::UNKNOWN, ResourceFlag::NONE,
 		1, 1, 1, 1.0f, 0, false, L"Depth"), ThrowIfFailed(E_FAIL));
 
 	// Set the 3D rendering viewport and scissor rectangle to target the entire window.
@@ -237,37 +247,37 @@ void RenderingX::CreateResources()
 void RenderingX::ResizeAssets()
 {
 	ThrowIfFailed(m_commandAllocators[m_frameIndex]->Reset());
-	ThrowIfFailed(m_commandList.Reset(m_commandAllocators[m_frameIndex], nullptr));
+	ThrowIfFailed(m_commandList->Reset(m_commandAllocators[m_frameIndex], nullptr));
 
 	// Scene
 	vector<Resource> uploaders;
-	N_RETURN(m_scene->ChangeWindowSize(m_commandList, uploaders, m_rtHDR, m_depth), ThrowIfFailed(E_FAIL));
+	N_RETURN(m_scene->ChangeWindowSize(m_commandList.get(), uploaders, *m_rtHDR, *m_depth), ThrowIfFailed(E_FAIL));
 
 	// Post process
 	{
-		N_RETURN(m_postprocess->ChangeWindowSize(m_rtHDR, m_scene->GetGBufferSRV(Scene::ALBEDO_IDX)), ThrowIfFailed(E_FAIL));
+		N_RETURN(m_postprocess->ChangeWindowSize(*m_rtHDR, m_scene->GetGBufferSRV(Scene::ALBEDO_IDX)), ThrowIfFailed(E_FAIL));
 
 		// Create Descriptor tables
-		Util::DescriptorTable srvTable;
-		const Descriptor srvs[] = { m_rtHDR.GetSRV(), m_depth.GetSRV() };
-		srvTable.SetDescriptors(0, static_cast<uint32_t>(size(srvs)), srvs, Postprocess::RESIZABLE_POOL);
-		X_RETURN(m_srvTables[SRV_HDR], srvTable.GetCbvSrvUavTable(*m_descriptorTableCache), ThrowIfFailed(E_FAIL));
+		const auto srvTable = Util::DescriptorTable::MakeUnique();
+		const Descriptor srvs[] = { m_rtHDR->GetSRV(), m_depth->GetSRV() };
+		srvTable->SetDescriptors(0, static_cast<uint32_t>(size(srvs)), srvs, Postprocess::RESIZABLE_POOL);
+		X_RETURN(m_srvTables[SRV_HDR], srvTable->GetCbvSrvUavTable(*m_descriptorTableCache), ThrowIfFailed(E_FAIL));
 
 		for (auto n = 0u; n < 2; ++n)
 		{
 			X_RETURN(m_srvTables[SRV_AA_INPUT + n], m_postprocess->CreateTemporalAASRVTable(
-				m_rtLDR.GetSRV(), m_rtTAAs[!n].GetSRV(), m_scene->GetGBufferSRV(Scene::MOTION_IDX),
+				m_rtLDR->GetSRV(), m_rtTAAs[!n]->GetSRV(), m_scene->GetGBufferSRV(Scene::MOTION_IDX),
 				m_scene->GetGBufferSRV(Scene::MATENC_IDX)), ThrowIfFailed(E_FAIL));
 
-			Util::DescriptorTable srvTable;
-			srvTable.SetDescriptors(0, 1, &m_rtTAAs[n].GetSRV(), Postprocess::RESIZABLE_POOL);
-			X_RETURN(m_srvTables[SRV_ANTIALIASED + n], srvTable.GetCbvSrvUavTable(*m_descriptorTableCache), ThrowIfFailed(E_FAIL));
+			const auto srvTable = Util::DescriptorTable::MakeUnique();
+			srvTable->SetDescriptors(0, 1, &m_rtTAAs[n]->GetSRV(), Postprocess::RESIZABLE_POOL);
+			X_RETURN(m_srvTables[SRV_ANTIALIASED + n], srvTable->GetCbvSrvUavTable(*m_descriptorTableCache), ThrowIfFailed(E_FAIL));
 		}
 	}
 
 	// Close the command list and execute it to begin the initial GPU setup.
-	ThrowIfFailed(m_commandList.Close());
-	BaseCommandList* const ppCommandLists[] = { m_commandList.GetCommandList().get() };
+	ThrowIfFailed(m_commandList->Close());
+	BaseCommandList* const ppCommandLists[] = { m_commandList->GetCommandList().get() };
 	m_commandQueue->ExecuteCommandLists(static_cast<uint32_t>(size(ppCommandLists)), ppCommandLists);
 
 	// Create synchronization objects and wait until assets have been uploaded to the GPU.
@@ -317,7 +327,7 @@ void RenderingX::OnRender()
 	PopulateCommandList();
 
 	// Execute the command list.
-	BaseCommandList* const ppCommandLists[] = { m_commandList.GetCommandList().get() };
+	BaseCommandList* const ppCommandLists[] = { m_commandList->GetCommandList().get() };
 	m_commandQueue->ExecuteCommandLists(static_cast<uint32_t>(size(ppCommandLists)), ppCommandLists);
 
 	// Present the frame.
@@ -348,7 +358,7 @@ void RenderingX::OnWindowSizeChanged(int width, int height)
 	// Release resources that are tied to the swap chain and update fence values.
 	for (auto n = 0u; n < FrameCount; ++n)
 	{
-		m_renderTargets[n] = RenderTarget();
+		m_renderTargets[n].reset();
 		m_fenceValues[n] = m_fenceValues[m_frameIndex];
 	}
 	m_descriptorTableCache->ResetDescriptorPool(CBV_SRV_UAV_POOL, Postprocess::RESIZABLE_POOL);
@@ -507,35 +517,36 @@ void RenderingX::PopulateCommandList()
 	// However, when ExecuteCommandList() is called on a particular command 
 	// list, that command list can then be reset at any time and must be before 
 	// re-recording.
-	ThrowIfFailed(m_commandList.Reset(m_commandAllocators[m_frameIndex], nullptr));
+	const auto pCommandList = m_commandList.get();
+	ThrowIfFailed(pCommandList->Reset(m_commandAllocators[m_frameIndex], nullptr));
 
 	// Record commands.
 	//const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 	//m_commandList.ClearRenderTargetView(m_renderTargets[m_frameIndex].GetRTV(), clearColor);
-	m_scene->Render(m_commandList);
+	m_scene->Render(pCommandList);
 
 	// Postprocessing
 	ResourceBarrier barriers[2];
-	m_postprocess->Render(m_commandList, m_rtLDR, m_rtHDR, m_rtLDR.GetRTV(), m_srvTables[SRV_HDR]);
+	m_postprocess->Render(pCommandList, *m_rtLDR, *m_rtHDR, m_rtLDR->GetRTV(), m_srvTables[SRV_HDR]);
 
 	// Temporal AA
-	auto numBarriers = m_rtTAAs[m_frameParity].SetBarrier(barriers, ResourceState::RENDER_TARGET);
-	numBarriers = m_rtLDR.SetBarrier(barriers, ResourceState::PIXEL_SHADER_RESOURCE, numBarriers);
-	m_commandList.Barrier(numBarriers, barriers);
-	m_postprocess->Antialias(m_commandList, &m_rtTAAs[m_frameParity].GetRTV(), m_srvTables[SRV_AA_INPUT + m_frameParity]);
+	auto numBarriers = m_rtTAAs[m_frameParity]->SetBarrier(barriers, ResourceState::RENDER_TARGET);
+	numBarriers = m_rtLDR->SetBarrier(barriers, ResourceState::PIXEL_SHADER_RESOURCE, numBarriers);
+	pCommandList->Barrier(numBarriers, barriers);
+	m_postprocess->Antialias(pCommandList, &m_rtTAAs[m_frameParity]->GetRTV(), m_srvTables[SRV_AA_INPUT + m_frameParity]);
 
 	// Unsharp
-	numBarriers = m_renderTargets[m_frameIndex].SetBarrier(barriers, ResourceState::RENDER_TARGET);
-	numBarriers = m_rtTAAs[m_frameParity].SetBarrier(barriers, ResourceState::PIXEL_SHADER_RESOURCE, numBarriers);
-	m_commandList.Barrier(numBarriers, barriers);
-	m_postprocess->Unsharp(m_commandList, &m_renderTargets[m_frameIndex].GetRTV(), m_srvTables[SRV_ANTIALIASED + m_frameParity]);
+	numBarriers = m_renderTargets[m_frameIndex]->SetBarrier(barriers, ResourceState::RENDER_TARGET);
+	numBarriers = m_rtTAAs[m_frameParity]->SetBarrier(barriers, ResourceState::PIXEL_SHADER_RESOURCE, numBarriers);
+	pCommandList->Barrier(numBarriers, barriers);
+	m_postprocess->Unsharp(pCommandList, &m_renderTargets[m_frameIndex]->GetRTV(), m_srvTables[SRV_ANTIALIASED + m_frameParity]);
 	m_frameParity = !m_frameParity;
 
 	// Indicate that the back buffer will now be used to present.
-	numBarriers = m_renderTargets[m_frameIndex].SetBarrier(barriers, ResourceState::PRESENT);
-	m_commandList.Barrier(numBarriers, barriers);
+	numBarriers = m_renderTargets[m_frameIndex]->SetBarrier(barriers, ResourceState::PRESENT);
+	pCommandList->Barrier(numBarriers, barriers);
 
-	ThrowIfFailed(m_commandList.Close());
+	ThrowIfFailed(pCommandList->Close());
 }
 
 // Wait for pending GPU work to complete.

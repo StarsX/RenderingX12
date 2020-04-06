@@ -4,51 +4,18 @@
 
 #pragma once
 
-#include "XUSGType.h"
+#include "XUSG.h"
 
 namespace XUSG
 {
-	enum DescriptorPoolType : uint8_t
-	{
-		CBV_SRV_UAV_POOL,
-		SAMPLER_POOL,
-		RTV_POOL,
-
-		NUM_DESCRIPTOR_POOL
-	};
-
-	enum SamplerPreset : uint8_t
-	{
-		POINT_WRAP,
-		POINT_MIRROR,
-		POINT_CLAMP,
-		POINT_BORDER,
-		POINT_LESS_EQUAL,
-
-		LINEAR_WRAP,
-		LINEAR_MIRROR,
-		LINEAR_CLAMP,
-		LINEAR_BORDER,
-		LINEAR_LESS_EQUAL,
-
-		ANISOTROPIC_WRAP,
-		ANISOTROPIC_MIRROR,
-		ANISOTROPIC_CLAMP,
-		ANISOTROPIC_BORDER,
-		ANISOTROPIC_LESS_EQUAL,
-
-		NUM_SAMPLER_PRESET
-	};
-
-	class DescriptorTableCache;
-
 	namespace Util
 	{
-		class DescriptorTable
+		class DescriptorTable_DX12 :
+			public DescriptorTable
 		{
 		public:
-			DescriptorTable();
-			virtual ~DescriptorTable();
+			DescriptorTable_DX12();
+			virtual ~DescriptorTable_DX12();
 
 			void SetDescriptors(uint32_t start, uint32_t num, const Descriptor* srcDescriptors,
 				uint8_t descriptorPoolIndex = 0);
@@ -77,12 +44,13 @@ namespace XUSG
 		};
 	}
 
-	class DescriptorTableCache
+	class DescriptorTableCache_DX12 :
+		public DescriptorTableCache
 	{
 	public:
-		DescriptorTableCache();
-		DescriptorTableCache(const Device& device, const wchar_t* name = nullptr);
-		virtual ~DescriptorTableCache();
+		DescriptorTableCache_DX12();
+		DescriptorTableCache_DX12(const Device& device, const wchar_t* name = nullptr);
+		virtual ~DescriptorTableCache_DX12();
 
 		void SetDevice(const Device& device);
 		void SetName(const wchar_t* name);
@@ -108,7 +76,7 @@ namespace XUSG
 		uint32_t GetDescriptorStride(DescriptorPoolType type) const;
 
 	protected:
-		friend class Util::DescriptorTable;
+		friend class Util::DescriptorTable_DX12;
 
 		void checkDescriptorPoolTypeStorage(DescriptorPoolType type, uint8_t index);
 
@@ -144,5 +112,21 @@ namespace XUSG
 		std::function<Sampler()> m_pfnSamplers[NUM_SAMPLER_PRESET];
 
 		std::wstring m_name;
+
+		static Sampler SamplerPointWrap();
+		static Sampler SamplerPointMirror();
+		static Sampler SamplerPointClamp();
+		static Sampler SamplerPointBorder();
+		static Sampler SamplerPointLessEqual();
+		static Sampler SamplerLinearWrap();
+		static Sampler SamplerLinearMirror();
+		static Sampler SamplerLinearClamp();
+		static Sampler SamplerLinearBorder();
+		static Sampler SamplerLinearLessEqual();
+		static Sampler SamplerAnisotropicWrap();
+		static Sampler SamplerAnisotropicMirror();
+		static Sampler SamplerAnisotropicClamp();
+		static Sampler SamplerAnisotropicBorder();
+		static Sampler SamplerAnisotropicLessEqual();
 	};
 }

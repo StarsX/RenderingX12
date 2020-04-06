@@ -4,15 +4,14 @@
 
 #pragma once
 
-#include "Core/XUSGResource.h"
-#include "Core/XUSGDescriptor.h"
+#include "Core/XUSG.h"
 #include "XUSGSharedConst.h"
 
 #define MAX_CASCADES	8
 
 namespace XUSG
 {
-	class Shadow
+	class DLL_EXPORT Shadow
 	{
 	public:
 		struct CBShadowData
@@ -32,16 +31,16 @@ namespace XUSG
 
 		// This runs when the application is initialized.
 		bool Init(float sceneMapSize, float shadowMapSize,
-			const std::shared_ptr<DescriptorTableCache>& descriptorTableCache,
+			const DescriptorTableCache::sptr& descriptorTableCache,
 			uint8_t numCasLevels = NUM_CASCADE);
 		// This runs per frame. This data could be cached when the cameras do not move.
 		void Update(uint8_t frameIndex, const DirectX::XMFLOAT4X4& view,
 			const DirectX::XMFLOAT4X4& proj, const DirectX::XMFLOAT4& lightPt);
 
-		void SetViewport(const CommandList& commandList, uint8_t i);
+		void SetViewport(const CommandList* pCommandList, uint8_t i);
 		void GetShadowMatrices(DirectX::XMMATRIX* pShadows) const;
 
-		DepthStencil& GetShadowMap();
+		const DepthStencil::uptr& GetShadowMap() const;
 		const DescriptorTable& GetShadowTable() const;
 		const Framebuffer& GetFramebuffer() const;
 		DirectX::FXMMATRIX GetShadowMatrix(uint8_t i) const;
@@ -79,14 +78,14 @@ namespace XUSG
 		DirectX::XMFLOAT4X4	m_shadowProj[MAX_CASCADES];
 		DirectX::XMFLOAT4X4	m_shadowView;
 
-		std::shared_ptr<DescriptorTableCache> m_descriptorTableCache;
+		DescriptorTableCache::sptr m_descriptorTableCache;
 
 		Viewport			m_viewports[MAX_CASCADES];
 		RectRange			m_scissorRects[MAX_CASCADES];
 
-		ConstantBuffer		m_cbShadow;
-		DepthStencil		m_shadowMap;
-		DescriptorTable		m_shadowTables[FrameCount];
-		Framebuffer			m_framebuffer;
+		ConstantBuffer::uptr	m_cbShadow;
+		DepthStencil::uptr		m_shadowMap;
+		DescriptorTable			m_shadowTables[FrameCount];
+		Framebuffer				m_framebuffer;
 	};
 }

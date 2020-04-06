@@ -4,15 +4,16 @@
 
 #pragma once
 
-#include "XUSGType.h"
+#include "XUSG.h"
 
 namespace XUSG
 {
-	class Reflector
+	class Reflector_DX12 :
+		public Reflector
 	{
 	public:
-		Reflector();
-		virtual ~Reflector();
+		Reflector_DX12();
+		virtual ~Reflector_DX12();
 
 		bool SetShader(const Blob& shader);
 		bool IsValid() const;

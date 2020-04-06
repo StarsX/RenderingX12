@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Core/XUSGResource.h"
+#include "Core/XUSG.h"
 
 //--------------------------------------------------------------------------------------
 // Hard Defines for the various structures
@@ -352,11 +352,11 @@ namespace XUSG
 		bool				GetAnimationProperties(uint32_t* pNumKeys, float* pFrameTime) const;
 
 	protected:
-		void loadMaterials(const CommandList& commandList, SDKMeshMaterial* pMaterials,
+		void loadMaterials(CommandList* pCommandList, SDKMeshMaterial* pMaterials,
 			uint32_t NumMaterials, std::vector<Resource>& uploaders);
 
-		bool createVertexBuffer(const CommandList& commandList, std::vector<Resource>& uploaders);
-		bool createIndexBuffer(const CommandList& commandList, std::vector<Resource>& uploaders);
+		bool createVertexBuffer(CommandList* pCommandList, std::vector<Resource>& uploaders);
+		bool createIndexBuffer(CommandList* pCommandList, std::vector<Resource>& uploaders);
 
 		virtual bool createFromFile(const Device& device, const wchar_t* fileName,
 			const TextureCache& textureCache, bool isStaticMesh);
@@ -365,7 +365,7 @@ namespace XUSG
 
 		void createAsStaticMesh();
 		void classifyMaterialType();
-		bool executeCommandList(CommandList& commandList);
+		bool executeCommandList(CommandList* pCommandList);
 
 		// Frame manipulation
 		void transformBindPoseFrame(uint32_t frame, DirectX::CXMMATRIX parentWorld);
@@ -393,9 +393,9 @@ namespace XUSG
 		SDKMeshFrame* m_pFrameArray;
 		SDKMeshMaterial* m_pMaterialArray;
 
-		VertexBuffer					m_vertexBuffer;
-		IndexBuffer						m_indexBuffer;
-		IndexBuffer						m_adjIndexBuffer;
+		VertexBuffer::sptr				m_vertexBuffer;
+		IndexBuffer::sptr				m_indexBuffer;
+		IndexBuffer::sptr				m_adjIndexBuffer;
 
 		// Classified subsets
 		std::vector<std::vector<uint32_t>> m_classifiedSubsets[NUM_SUBSET_TYPE];

@@ -84,8 +84,8 @@
       <AdditionalLibraryDirectories>$(ProjectDir)XUSG\Debug</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>
-COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
+      <Command>COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"
+COPY /Y "$(ProjectDir)XUSG\Debug\*.dll" "$(ProjectDir)..\Bin\"</Command>
     </PostBuildEvent>
     <FxCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)XUSG\Shaders;$(ProjectDir)XUSG\Advanced</AdditionalIncludeDirectories>
@@ -107,8 +107,8 @@ COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
       <AdditionalLibraryDirectories>$(ProjectDir)XUSG\x64\Debug</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>
-COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
+      <Command>COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"
+COPY /Y "$(ProjectDir)XUSG\x64\Debug\*.dll" "$(ProjectDir)..\Bin\"</Command>
     </PostBuildEvent>
     <FxCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)XUSG\Shaders;$(ProjectDir)XUSG\Advanced</AdditionalIncludeDirectories>
@@ -132,8 +132,8 @@ COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
       <AdditionalLibraryDirectories>$(ProjectDir)XUSG\Release</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>
-COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
+      <Command>COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"
+COPY /Y "$(ProjectDir)XUSG\Release\*.dll" "$(ProjectDir)..\Bin\"</Command>
     </PostBuildEvent>
     <FxCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)XUSG\Shaders;$(ProjectDir)XUSG\Advanced</AdditionalIncludeDirectories>
@@ -159,8 +159,8 @@ COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
       <AdditionalLibraryDirectories>$(ProjectDir)XUSG\x64\Release</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>
-COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
+      <Command>COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"
+COPY /Y "$(ProjectDir)XUSG\x64\Release\*.dll" "$(ProjectDir)..\Bin\"</Command>
     </PostBuildEvent>
     <FxCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)XUSG\Shaders;$(ProjectDir)XUSG\Advanced</AdditionalIncludeDirectories>
@@ -193,16 +193,7 @@ COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"</Command>
     <ClInclude Include="XUSG\Advanced\XUSGSharedConst.h" />
     <ClInclude Include="XUSG\Advanced\XUSGStaticModel.h" />
     <ClInclude Include="XUSG\Core\XUSG.h" />
-    <ClInclude Include="XUSG\Core\XUSGCommand.h" />
-    <ClInclude Include="XUSG\Core\XUSGComputeState.h" />
-    <ClInclude Include="XUSG\Core\XUSGDescriptor.h" />
-    <ClInclude Include="XUSG\Core\XUSGGraphicsState.h" />
-    <ClInclude Include="XUSG\Core\XUSGInputLayout.h" />
-    <ClInclude Include="XUSG\Core\XUSGPipelineLayout.h" />
-    <ClInclude Include="XUSG\Core\XUSGReflector.h" />
-    <ClInclude Include="XUSG\Core\XUSGResource.h" />
-    <ClInclude Include="XUSG\Core\XUSGShader.h" />
-    <ClInclude Include="XUSG\Core\XUSGType.h" />
+    <ClInclude Include="XUSG\Core\XUSG_DX12.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Import\DXFramework.cpp">

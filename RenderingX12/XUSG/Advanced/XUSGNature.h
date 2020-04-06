@@ -4,24 +4,21 @@
 
 #pragma once
 
-#include "Core/XUSGPipelineLayout.h"
-#include "Core/XUSGGraphicsState.h"
-#include "Core/XUSGResource.h"
-#include "Core/XUSGDescriptor.h"
+#include "Core/XUSG.h"
 #include "XUSGSharedConst.h"
 
 namespace XUSG
 {
-	class Nature
+	class DLL_EXPORT Nature
 	{
 	public:
 		Nature(const Device& device);
 		virtual ~Nature();
 
-		bool Init(const CommandList& commandList, const std::shared_ptr<ShaderPool>& shaderPool,
-			const std::shared_ptr<Graphics::PipelineCache>& graphicsPipelineCache,
-			const std::shared_ptr<PipelineLayoutCache>& pipelineLayoutCache,
-			const std::shared_ptr<DescriptorTableCache>& descriptorTableCache,
+		bool Init(CommandList* pCommandList, const ShaderPool::sptr& shaderPool,
+			const Graphics::PipelineCache::sptr& graphicsPipelineCache,
+			const PipelineLayoutCache::sptr& pipelineLayoutCache,
+			const DescriptorTableCache::sptr& descriptorTableCache,
 			const std::wstring& skyTexture, std::vector<Resource>& uploaders,
 			bool renderWater, Format rtvFormat = Format::R11G11B10_FLOAT,
 			Format dsvFormat = Format::D24_UNORM_S8_UINT);
@@ -29,8 +26,8 @@ namespace XUSG
 
 		void Update(uint8_t frameIndex, DirectX::FXMMATRIX* pViewProj, DirectX::FXMMATRIX* pWorld = nullptr);
 		void SetGlobalCBVTables(DescriptorTable cbvImmutable, DescriptorTable cbvPerFrameTable);
-		void RenderSky(const CommandList& commandList, bool reset = false);
-		void RenderWater(const CommandList& commandList, const Framebuffer& framebuffer,
+		void RenderSky(const CommandList* pCommandList, bool reset = false);
+		void RenderWater(const CommandList* pCommandList, const Framebuffer& framebuffer,
 			uint32_t& numBarriers, ResourceBarrier* pBarriers, bool reset = false);
 
 		Descriptor GetSkySRV() const;
@@ -103,32 +100,32 @@ namespace XUSG
 
 		bool createGBuffers(ResourceBase* pSceneColor, const DepthStencil& depth);
 		bool createConstantBuffer();
-		bool loadTextures(const CommandList& commandList, const std::wstring& skyTexture, std::vector<Resource>& uploaders);
+		bool loadTextures(CommandList* pCommandList, const std::wstring& skyTexture, std::vector<Resource>& uploaders);
 		bool createPipelineLayouts(bool renderWater);
 		bool createPipelines(bool renderWater, Format rtvFormat, Format dsvFormat);
-		void setWaterResources(const CommandList& commandList, uint32_t& numBarriers, ResourceBarrier* pBarriers);
-		void renderReflection(const CommandList& commandList);
-		void renderWater(const CommandList& commandList, const Framebuffer& framebuffer);
+		void setWaterResources(const CommandList* pCommandList, uint32_t& numBarriers, ResourceBarrier* pBarriers);
+		void renderReflection(const CommandList* pCommandList);
+		void renderWater(const CommandList* pCommandList, const Framebuffer& framebuffer);
 
 		Device		m_device;
 		uint8_t		m_frameIndex;
 
-		std::shared_ptr<ShaderPool>					m_shaderPool;
-		std::shared_ptr<Graphics::PipelineCache>	m_graphicsPipelineCache;
-		std::shared_ptr<PipelineLayoutCache>		m_pipelineLayoutCache;
-		std::shared_ptr<DescriptorTableCache>		m_descriptorTableCache;
+		ShaderPool::sptr				m_shaderPool;
+		Graphics::PipelineCache::sptr	m_graphicsPipelineCache;
+		PipelineLayoutCache::sptr		m_pipelineLayoutCache;
+		DescriptorTableCache::sptr		m_descriptorTableCache;
 
-		std::shared_ptr<ResourceBase>				m_skyTexture;
+		ResourceBase::sptr m_skyTexture;
 		ResourceBase*	m_pSceneColor;
 
 		Viewport		m_viewport;
 		RectRange		m_scissorRect;
 
-		Texture2D		m_refraction;
-		RenderTarget	m_reflection;
-		RenderTarget	m_depth;
+		Texture2D::uptr	m_refraction;
+		RenderTarget::uptr m_reflection;
+		RenderTarget::uptr m_depth;
 
-		ConstantBuffer	m_cbMatrices;
+		ConstantBuffer::uptr m_cbMatrices;
 
 		PipelineLayout	m_pipelineLayouts[NUM_PIPE_LAYOUT];
 		Pipeline		m_pipelines[NUM_PIPELINE];

@@ -4,25 +4,24 @@
 
 #pragma once
 
-#include "XUSGType.h"
+#include "XUSG.h"
 
 namespace XUSG
 {
 	namespace Compute
 	{
-		class PipelineCache;
+		struct Key
+		{
+			void* PipelineLayout;
+			void* Shader;
+		};
 
-		class State
+		class State_DX12 :
+			public State
 		{
 		public:
-			struct Key
-			{
-				void* PipelineLayout;
-				void* Shader;
-			};
-
-			State();
-			virtual ~State();
+			State_DX12();
+			virtual ~State_DX12();
 
 			void SetPipelineLayout(const PipelineLayout& layout);
 			void SetShader(Blob shader);
@@ -37,12 +36,13 @@ namespace XUSG
 			std::string m_key;
 		};
 
-		class PipelineCache
+		class PipelineCache_DX12 :
+			public PipelineCache
 		{
 		public:
-			PipelineCache();
-			PipelineCache(const Device& device);
-			virtual ~PipelineCache();
+			PipelineCache_DX12();
+			PipelineCache_DX12(const Device& device);
+			virtual ~PipelineCache_DX12();
 
 			void SetDevice(const Device& device);
 			void SetPipeline(const std::string& key, const Pipeline& pipeline);
@@ -51,7 +51,7 @@ namespace XUSG
 			Pipeline GetPipeline(const State& state, const wchar_t* name = nullptr);
 
 		protected:
-			Pipeline createPipeline(const State::Key* pKey, const wchar_t* name);
+			Pipeline createPipeline(const Key* pKey, const wchar_t* name);
 			Pipeline getPipeline(const std::string& key, const wchar_t* nam);
 
 			Device m_device;

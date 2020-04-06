@@ -90,36 +90,6 @@
     <ClInclude Include="XUSG\Core\XUSG.h">
       <Filter>XUSG\Core</Filter>
     </ClInclude>
-    <ClInclude Include="XUSG\Core\XUSGCommand.h">
-      <Filter>XUSG\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Core\XUSGComputeState.h">
-      <Filter>XUSG\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Core\XUSGDescriptor.h">
-      <Filter>XUSG\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Core\XUSGGraphicsState.h">
-      <Filter>XUSG\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Core\XUSGInputLayout.h">
-      <Filter>XUSG\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Core\XUSGPipelineLayout.h">
-      <Filter>XUSG\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Core\XUSGReflector.h">
-      <Filter>XUSG\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Core\XUSGResource.h">
-      <Filter>XUSG\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Core\XUSGShader.h">
-      <Filter>XUSG\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Core\XUSGType.h">
-      <Filter>XUSG\Core</Filter>
-    </ClInclude>
     <ClInclude Include="Import\d3dx12.h">
       <Filter>Import\Header Files</Filter>
     </ClInclude>
@@ -143,6 +113,9 @@
     </ClInclude>
     <ClInclude Include="Import\Win32Application.h">
       <Filter>Import\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="XUSG\Core\XUSG_DX12.h">
+      <Filter>XUSG\Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

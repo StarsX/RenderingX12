@@ -68,31 +68,31 @@ private:
 
 	XUSG::com_ptr<IDXGIFactory4> m_factory;
 
-	std::shared_ptr<XUSG::ShaderPool>				m_shaderPool;
-	std::shared_ptr<XUSG::Graphics::PipelineCache>	m_graphicsPipelineCache;
-	std::shared_ptr<XUSG::Compute::PipelineCache>	m_computePipelineCache;
-	std::shared_ptr<XUSG::PipelineLayoutCache>		m_pipelineLayoutCache;
-	std::shared_ptr<XUSG::DescriptorTableCache>		m_descriptorTableCache;
+	XUSG::ShaderPool::sptr				m_shaderPool;
+	XUSG::Graphics::PipelineCache::sptr	m_graphicsPipelineCache;
+	XUSG::Compute::PipelineCache::sptr	m_computePipelineCache;
+	XUSG::PipelineLayoutCache::sptr		m_pipelineLayoutCache;
+	XUSG::DescriptorTableCache::sptr	m_descriptorTableCache;
 
 	// Pipeline objects.
-	XUSG::Viewport			m_viewport;
-	XUSG::RectRange			m_scissorRect;
+	XUSG::Viewport				m_viewport;
+	XUSG::RectRange				m_scissorRect;
 
-	XUSG::SwapChain			m_swapChain;
-	XUSG::CommandAllocator	m_commandAllocators[FrameCount];
-	XUSG::CommandQueue		m_commandQueue;
+	XUSG::SwapChain				m_swapChain;
+	XUSG::CommandAllocator		m_commandAllocators[FrameCount];
+	XUSG::CommandQueue			m_commandQueue;
 
-	XUSG::Device			m_device;
-	XUSG::RenderTarget		m_renderTargets[FrameCount];
-	XUSG::CommandList		m_commandList;
+	XUSG::Device				m_device;
+	XUSG::RenderTarget::uptr	m_renderTargets[FrameCount];
+	XUSG::CommandList::uptr		m_commandList;
 
 	// App resources.
 	std::unique_ptr<XUSG::Scene> m_scene;
 	std::unique_ptr<XUSG::Postprocess> m_postprocess;
-	XUSG::RenderTarget		m_rtHDR;
-	XUSG::RenderTarget		m_rtLDR;
-	XUSG::RenderTarget		m_rtTAAs[2];
-	XUSG::DepthStencil		m_depth;
+	XUSG::RenderTarget::uptr	m_rtHDR;
+	XUSG::RenderTarget::uptr	m_rtLDR;
+	XUSG::RenderTarget::uptr	m_rtTAAs[2];
+	XUSG::DepthStencil::uptr	m_depth;
 	XMFLOAT4X4	m_proj;
 	XMFLOAT4X4	m_view;
 	XMFLOAT3	m_eyePt;

@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include "Core/XUSGComputeState.h"
+#include "Core/XUSG.h"
 #include "XUSGModel.h"
 
 namespace XUSG
 {
-	class Character :
+	class DLL_EXPORT Character :
 		public Model
 	{
 	public:
@@ -45,11 +45,11 @@ namespace XUSG
 
 		bool Init(const InputLayout& inputLayout,
 			const std::shared_ptr<SDKMesh>& mesh,
-			const std::shared_ptr<ShaderPool>& shaderPool,
-			const std::shared_ptr<Graphics::PipelineCache>& graphicsPipelineCache,
-			const std::shared_ptr<Compute::PipelineCache>& computePipelineCache,
-			const std::shared_ptr<PipelineLayoutCache>& pipelineLayoutCache,
-			const std::shared_ptr<DescriptorTableCache>& descriptorTableCache,
+			const ShaderPool::sptr& shaderPool,
+			const Graphics::PipelineCache::sptr& graphicsPipelineCache,
+			const Compute::PipelineCache::sptr& computePipelineCache,
+			const PipelineLayoutCache::sptr& pipelineLayoutCache,
+			const DescriptorTableCache::sptr& descriptorTableCache,
 			const std::shared_ptr<std::vector<SDKMesh>>& linkedMeshes = nullptr,
 			const std::shared_ptr<std::vector<MeshLink>>& meshLinks = nullptr,
 			const Format* rtvFormats = nullptr, uint32_t numRTVs = 0,
@@ -62,10 +62,10 @@ namespace XUSG
 		virtual void SetMatrices(DirectX::CXMMATRIX viewProj, DirectX::FXMMATRIX* pWorld = nullptr,
 			DirectX::FXMMATRIX* pShadowView = nullptr, DirectX::FXMMATRIX* pShadows = nullptr,
 			uint8_t numShadows = 0, bool isTemporal = true);
-		void SetSkinningPipeline(const CommandList& commandList);
-		void Skinning(const CommandList& commandList, uint32_t& numBarriers,
+		void SetSkinningPipeline(const CommandList* pCommandList);
+		void Skinning(const CommandList* pCommandList, uint32_t& numBarriers,
 			ResourceBarrier* pBarriers, bool reset = false);
-		void RenderTransformed(const CommandList& commandList, PipelineLayoutIndex layout,
+		void RenderTransformed(const CommandList* pCommandList, PipelineLayoutIndex layout,
 			SubsetFlags subsetFlags = SUBSET_FULL, uint8_t matrixTableIndex = CBV_MATRICES,
 			uint32_t numInstances = 1);
 
@@ -94,8 +94,8 @@ namespace XUSG
 		virtual void setLinkedMatrices(uint32_t mesh, DirectX::CXMMATRIX viewProj,
 			DirectX::CXMMATRIX world, DirectX::FXMMATRIX* pShadowView,
 			DirectX::FXMMATRIX* pShadows, uint8_t numShadows, bool isTemporal);
-		void skinning(const CommandList& commandList, bool reset);
-		void renderTransformed(const CommandList& commandList, PipelineLayoutIndex layout,
+		void skinning(const CommandList* pCommandList, bool reset);
+		void renderTransformed(const CommandList* pCommandList, PipelineLayoutIndex layout,
 			SubsetFlags subsetFlags, uint8_t matrixTableIndex, uint32_t numInstances);
 		void renderLinked(uint32_t mesh, uint8_t matrixTableIndex,
 			PipelineLayoutIndex layout, uint32_t numInstances);
@@ -107,13 +107,13 @@ namespace XUSG
 
 		std::shared_ptr<Compute::PipelineCache> m_computePipelineCache;
 
-		VertexBuffer m_transformedVBs[FrameCount];
+		VertexBuffer::uptr	m_transformedVBs[FrameCount];
 		DirectX::XMFLOAT4X4	m_mWorld;
 		DirectX::XMFLOAT4	m_vPosRot;
 
 		double m_time;
 
-		StructuredBuffer m_boneWorlds[FrameCount];
+		StructuredBuffer::uptr m_boneWorlds[FrameCount];
 
 		PipelineLayout	m_skinningPipelineLayout;
 		Pipeline		m_skinningPipeline;
@@ -128,7 +128,7 @@ namespace XUSG
 		std::shared_ptr<std::vector<SDKMesh>>	m_linkedMeshes;
 		std::shared_ptr<std::vector<MeshLink>>	m_meshLinks;
 
-		std::vector<ConstantBuffer> m_cbLinkedMatrices;
-		std::vector<ConstantBuffer> m_cbLinkedShadowMatrices;
+		std::vector<ConstantBuffer::uptr> m_cbLinkedMatrices;
+		std::vector<ConstantBuffer::uptr> m_cbLinkedShadowMatrices;
 	};
 }

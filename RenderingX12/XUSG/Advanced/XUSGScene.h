@@ -13,7 +13,7 @@
 
 namespace XUSG
 {
-	class Scene
+	class DLL_EXPORT Scene
 	{
 	public:
 		enum GBufferIndex : uint8_t
@@ -48,22 +48,22 @@ namespace XUSG
 		Scene(const Device& device);
 		virtual ~Scene();
 
-		bool LoadAssets(void* pSceneReader, const CommandList& commandList,
-			const std::shared_ptr<ShaderPool>& shaderPool,
-			const std::shared_ptr<Graphics::PipelineCache>& graphicsPipelineCache,
-			const std::shared_ptr<Compute::PipelineCache>& computePipelineCache,
-			const std::shared_ptr<PipelineLayoutCache>& pipelineLayoutCache,
-			const std::shared_ptr<DescriptorTableCache>& descriptorTableCache,
+		bool LoadAssets(void* pSceneReader, CommandList* pCommandList,
+			const ShaderPool::sptr& shaderPool,
+			const Graphics::PipelineCache::sptr& graphicsPipelineCache,
+			const Compute::PipelineCache::sptr& computePipelineCache,
+			const PipelineLayoutCache::sptr& pipelineLayoutCache,
+			const DescriptorTableCache::sptr& descriptorTableCache,
 			std::vector<Resource>& uploaders, Format rtvFormat, Format dsvFormat,
 			bool useIBL = false);
-		virtual bool ChangeWindowSize(const CommandList& commandList, std::vector<Resource>& uploaders,
+		virtual bool ChangeWindowSize(CommandList* pCommandList, std::vector<Resource>& uploaders,
 			RenderTarget& renderTarget, DepthStencil& depth);
-		virtual bool CreateResources(const CommandList& commandList, std::vector<Resource>& uploaders);
+		virtual bool CreateResources(CommandList* pCommandList, std::vector<Resource>& uploaders);
 		void Update(uint8_t frameIndex, double time, float timeStep);
 		void Update(uint8_t frameIndex, double time, float timeStep,
 			DirectX::CXMMATRIX view, DirectX::CXMMATRIX proj,
 			DirectX::CXMVECTOR eyePt);
-		void Render(const CommandList& commandList);
+		void Render(const CommandList* pCommandList);
 		void SetViewProjMatrix(DirectX::CXMMATRIX view, DirectX::CXMMATRIX proj);
 		void SetEyePoint(DirectX::CXMVECTOR eyePt);
 		void SetFocusAndDistance(DirectX::CXMVECTOR focus_dist);
@@ -72,7 +72,7 @@ namespace XUSG
 
 		DirectX::FXMVECTOR GetFocusAndDistance() const;
 		const DescriptorTable& GetCBVTable(uint8_t i) const;
-		const RenderTarget& GetGBuffer(const uint8_t i) const;
+		const RenderTarget::sptr GetGBuffer(const uint8_t i) const;
 		Descriptor GetGBufferSRV(const uint8_t i) const;
 
 	protected:
@@ -176,29 +176,29 @@ namespace XUSG
 		virtual bool createStaticModels(Format dsvFormat, const std::vector<uint32_t>& indices,
 			const std::vector<MeshProp>& configs, const std::vector<std::wstring>& names);
 		virtual bool createGBuffers();
-		virtual bool createImmutable(const CommandList& commandList, std::vector<Resource>& uploaders);
+		virtual bool createImmutable(CommandList* pCommandList, std::vector<Resource>& uploaders);
 		virtual bool createConstantBuffers();
 		virtual bool createShadowMap();
 		virtual bool createPipelineLayouts();
 		virtual bool createPipelines(Format rtvFormat);
 
-		virtual void renderOpaque(const CommandList& commandList);
-		virtual void renderAlpha(const CommandList& commandList);
-		virtual void renderGBuffersOpaque(const CommandList& commandList, uint32_t& numBarriers, ResourceBarrier* pBarriers);
-		virtual void renderGBuffersAlpha(const CommandList& commandList, uint32_t& numBarriers, ResourceBarrier* pBarriers);
-		virtual void renderDepth(const CommandList& commandList, uint8_t space, uint8_t temporalBiasIdx);
-		virtual void renderShadowMap(const CommandList& commandList);
-		virtual void deferredShade(const CommandList& commandList, bool alpha, uint32_t& numBarriers, ResourceBarrier* pBarriers);
-		virtual void ambientOcclusion(const CommandList& commandList);
+		virtual void renderOpaque(const CommandList* pCommandList);
+		virtual void renderAlpha(const CommandList* pCommandList);
+		virtual void renderGBuffersOpaque(const CommandList* pCommandList, uint32_t& numBarriers, ResourceBarrier* pBarriers);
+		virtual void renderGBuffersAlpha(const CommandList* pCommandList, uint32_t& numBarriers, ResourceBarrier* pBarriers);
+		virtual void renderDepth(const CommandList* pCommandList, uint8_t space, uint8_t temporalBiasIdx);
+		virtual void renderShadowMap(const CommandList* pCommandList);
+		virtual void deferredShade(const CommandList* pCommandList, bool alpha, uint32_t& numBarriers, ResourceBarrier* pBarriers);
+		virtual void ambientOcclusion(const CommandList* pCommandList);
 
 		Device		m_device;
 		uint8_t		m_frameIndex;
 
-		std::shared_ptr<ShaderPool>					m_shaderPool;
-		std::shared_ptr<Graphics::PipelineCache>	m_graphicsPipelineCache;
-		std::shared_ptr<Compute::PipelineCache>		m_computePipelineCache;
-		std::shared_ptr<PipelineLayoutCache>		m_pipelineLayoutCache;
-		std::shared_ptr<DescriptorTableCache>		m_descriptorTableCache;
+		ShaderPool::sptr				m_shaderPool;
+		Graphics::PipelineCache::sptr	m_graphicsPipelineCache;
+		Compute::PipelineCache::sptr	m_computePipelineCache;
+		PipelineLayoutCache::sptr		m_pipelineLayoutCache;
+		DescriptorTableCache::sptr		m_descriptorTableCache;
 
 		InputLayout	m_inputLayout;
 		Viewport	m_viewport;
@@ -237,22 +237,22 @@ namespace XUSG
 		DirectX::XMFLOAT4X4	m_view;
 		DirectX::XMFLOAT4X4	m_proj;
 
-		std::vector<Format>	m_gBufferFormats;
-		std::vector<RenderTarget> m_gBuffers;
-		DescriptorTable		m_srvTables[NUM_SRV_TABLE];
-		Framebuffer			m_framebuffers[NUM_FRAMEBUFFER];
-		RenderTarget*		m_pRenderTarget;
-		DepthStencil*		m_pDepth;
+		std::vector<Format>		m_gBufferFormats;
+		std::vector<RenderTarget::sptr> m_gBuffers;
+		DescriptorTable			m_srvTables[NUM_SRV_TABLE];
+		Framebuffer				m_framebuffers[NUM_FRAMEBUFFER];
+		RenderTarget*			m_pRenderTarget;
+		DepthStencil*			m_pDepth;
 
-		PipelineLayout		m_pipelineLayouts[NUM_PIPE_LAYOUT];
-		Pipeline			m_pipelines[NUM_PIPELINE];
+		PipelineLayout			m_pipelineLayouts[NUM_PIPE_LAYOUT];
+		Pipeline				m_pipelines[NUM_PIPELINE];
 
-		ConstantBuffer		m_cbImmutable;
-		ConstantBuffer		m_cbPerFrame;
+		ConstantBuffer::uptr	m_cbImmutable;
+		ConstantBuffer::uptr	m_cbPerFrame;
 #if TEMPORAL_AA
-		ConstantBuffer		m_cbTemporalBias;
+		ConstantBuffer::uptr	m_cbTemporalBias;
 #endif
-		DescriptorTable		m_cbvTables[NUM_CBV_TABLE];
-		DescriptorTable		m_samplerTable;
+		DescriptorTable			m_cbvTables[NUM_CBV_TABLE];
+		DescriptorTable			m_samplerTable;
 	};
 }

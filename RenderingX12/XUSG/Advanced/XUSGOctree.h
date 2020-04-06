@@ -13,7 +13,7 @@ namespace XUSG
 	class OctNode;
 	using Octree = std::unique_ptr<OctNode>;
 
-	class OctNode
+	class DLL_EXPORT OctNode
 	{
 	public:
 		enum Visibility : uint8_t

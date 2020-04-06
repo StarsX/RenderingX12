@@ -4,42 +4,18 @@
 
 #pragma once
 
-#include "XUSGShader.h"
+#include "XUSG.h"
 
 namespace XUSG
 {
-	enum class DescriptorType : uint8_t
-	{
-		SRV,
-		UAV,
-		CBV,
-		SAMPLER,
-		CONSTANT,
-		ROOT_SRV,
-		ROOT_UAV,
-		ROOT_CBV,
-
-		NUM
-	};
-
-	class PipelineLayoutCache;
-
-	struct DescriptorRange
-	{
-		DescriptorType ViewType;
-		uint32_t NumDescriptors;
-		uint32_t BaseBinding;
-		uint32_t Space;
-		DescriptorRangeFlag Flags;
-	};
-
 	namespace Util
 	{
-		class PipelineLayout
+		class PipelineLayout_DX12 :
+			public PipelineLayout
 		{
 		public:
-			PipelineLayout();
-			virtual ~PipelineLayout();
+			PipelineLayout_DX12();
+			virtual ~PipelineLayout_DX12();
 
 			void SetShaderStage(uint32_t index, Shader::Stage stage);
 			void SetRange(uint32_t index, DescriptorType type, uint32_t num, uint32_t baseBinding,
@@ -74,12 +50,13 @@ namespace XUSG
 		};
 	}
 
-	class PipelineLayoutCache
+	class PipelineLayoutCache_DX12 :
+		public PipelineLayoutCache
 	{
 	public:
-		PipelineLayoutCache();
-		PipelineLayoutCache(const Device& device);
-		virtual ~PipelineLayoutCache();
+		PipelineLayoutCache_DX12();
+		PipelineLayoutCache_DX12(const Device& device);
+		virtual ~PipelineLayoutCache_DX12();
 
 		void SetDevice(const Device& device);
 		void SetPipelineLayout(const std::string& key, const PipelineLayout& pipelineLayout);
