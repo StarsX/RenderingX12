@@ -169,7 +169,6 @@ COPY /Y "$(ProjectDir)XUSG\x64\Release\*.dll" "$(ProjectDir)..\Bin\"</Command>
   <ItemGroup>
     <ClInclude Include="Import\d3dx12.h" />
     <ClInclude Include="Import\dds.h" />
-    <ClInclude Include="Import\dxcapi.h" />
     <ClInclude Include="Import\DXFramework.h" />
     <ClInclude Include="Import\DXFrameworkHelper.h" />
     <ClInclude Include="Import\StepTimer.h" />
@@ -179,19 +178,8 @@ COPY /Y "$(ProjectDir)XUSG\x64\Release\*.dll" "$(ProjectDir)..\Bin\"</Command>
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="XUSG\Advanced\XUSGAdvanced.h" />
-    <ClInclude Include="XUSG\Advanced\XUSGCharacter.h" />
-    <ClInclude Include="XUSG\Advanced\XUSGDDSLoader.h" />
-    <ClInclude Include="XUSG\Advanced\XUSGHalton.h" />
-    <ClInclude Include="XUSG\Advanced\XUSGModel.h" />
-    <ClInclude Include="XUSG\Advanced\XUSGNature.h" />
-    <ClInclude Include="XUSG\Advanced\XUSGOctree.h" />
-    <ClInclude Include="XUSG\Advanced\XUSGPostprocess.h" />
-    <ClInclude Include="XUSG\Advanced\XUSGScene.h" />
-    <ClInclude Include="XUSG\Advanced\XUSGSDKMesh.h" />
     <ClInclude Include="XUSG\Advanced\XUSGShaderCommon.h" />
-    <ClInclude Include="XUSG\Advanced\XUSGShadow.h" />
     <ClInclude Include="XUSG\Advanced\XUSGSharedConst.h" />
-    <ClInclude Include="XUSG\Advanced\XUSGStaticModel.h" />
     <ClInclude Include="XUSG\Core\XUSG.h" />
     <ClInclude Include="XUSG\Core\XUSG_DX12.h" />
   </ItemGroup>

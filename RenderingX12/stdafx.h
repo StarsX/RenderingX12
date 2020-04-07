@@ -37,14 +37,13 @@
 #include <algorithm>
 #include <string>
 #include <vector>
+#include <map>
 #include <unordered_map>
 #include <functional>
 #include <wrl.h>
 #include <shellapi.h>
 
 #include "tinyjson.hpp"
-
-#define INCLUDE_XUSG_NATURE_H
 
 #if defined(DEBUG) | defined(_DEBUG)
 #ifndef DBG_NEW

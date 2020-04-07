@@ -13,7 +13,6 @@
 
 #include "DXFramework.h"
 #include "StepTimer.h"
-#include "Core/XUSG.h"
 #include "Advanced/XUSGAdvanced.h"
 
 using namespace DirectX;
@@ -87,8 +86,8 @@ private:
 	XUSG::CommandList::uptr		m_commandList;
 
 	// App resources.
-	std::unique_ptr<XUSG::Scene> m_scene;
-	std::unique_ptr<XUSG::Postprocess> m_postprocess;
+	XUSG::Scene::uptr			m_scene;
+	XUSG::Postprocess::uptr		m_postprocess;
 	XUSG::RenderTarget::uptr	m_rtHDR;
 	XUSG::RenderTarget::uptr	m_rtLDR;
 	XUSG::RenderTarget::uptr	m_rtTAAs[2];

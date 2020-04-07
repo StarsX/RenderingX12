@@ -127,7 +127,7 @@ void RenderingX::LoadAssets()
 		sceneReader.ReadJson(sceneString);
 
 		// Create scene
-		m_scene = make_unique<Scene>(m_device);
+		m_scene = Scene::MakeUnique(m_device);
 		//m_scene->SetRenderTarget(m_rtHDR, m_depth);
 		N_RETURN(m_scene->LoadAssets(&sceneReader, m_commandList.get(), m_shaderPool,
 			m_graphicsPipelineCache, m_computePipelineCache, m_pipelineLayoutCache,
@@ -136,7 +136,7 @@ void RenderingX::LoadAssets()
 	}
 
 	{
-		m_postprocess = make_unique<Postprocess>(m_device);
+		m_postprocess = Postprocess::MakeUnique(m_device);
 		N_RETURN(m_postprocess->Init(m_shaderPool, m_graphicsPipelineCache,
 			m_computePipelineCache, m_pipelineLayoutCache, m_descriptorTableCache,
 			FormatHDR, FormatLDR), ThrowIfFailed(E_FAIL));

@@ -48,43 +48,10 @@
     <ClInclude Include="XUSG\Advanced\XUSGAdvanced.h">
       <Filter>XUSG\Advanced</Filter>
     </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGCharacter.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGDDSLoader.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGHalton.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGModel.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGNature.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGOctree.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGPostprocess.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGScene.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGSDKMesh.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
     <ClInclude Include="XUSG\Advanced\XUSGShaderCommon.h">
       <Filter>XUSG\Advanced</Filter>
     </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGShadow.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
     <ClInclude Include="XUSG\Advanced\XUSGSharedConst.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGStaticModel.h">
       <Filter>XUSG\Advanced</Filter>
     </ClInclude>
     <ClInclude Include="XUSG\Core\XUSG.h">
@@ -94,9 +61,6 @@
       <Filter>Import\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Import\dds.h">
-      <Filter>Import\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Import\dxcapi.h">
       <Filter>Import\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Import\DXFramework.h">
