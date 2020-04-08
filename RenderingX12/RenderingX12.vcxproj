@@ -81,11 +81,13 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dxguid.lib;XUSG.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)XUSG\Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)XUSG\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"
-COPY /Y "$(ProjectDir)XUSG\Debug\*.dll" "$(ProjectDir)..\Bin\"</Command>
+COPY /Y "$(ProjectDir)XUSG\$(Platform)\$(Configuration)\*.dll" "$(ProjectDir)..\Bin\"
+
+</Command>
     </PostBuildEvent>
     <FxCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)XUSG\Shaders;$(ProjectDir)XUSG\Advanced</AdditionalIncludeDirectories>
@@ -104,11 +106,13 @@ COPY /Y "$(ProjectDir)XUSG\Debug\*.dll" "$(ProjectDir)..\Bin\"</Command>
     </ClCompile>
     <Link>
       <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dxguid.lib;XUSG.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)XUSG\x64\Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)XUSG\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"
-COPY /Y "$(ProjectDir)XUSG\x64\Debug\*.dll" "$(ProjectDir)..\Bin\"</Command>
+COPY /Y "$(ProjectDir)XUSG\$(Platform)\$(Configuration)\*.dll" "$(ProjectDir)..\Bin\"
+
+</Command>
     </PostBuildEvent>
     <FxCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)XUSG\Shaders;$(ProjectDir)XUSG\Advanced</AdditionalIncludeDirectories>
@@ -129,11 +133,13 @@ COPY /Y "$(ProjectDir)XUSG\x64\Debug\*.dll" "$(ProjectDir)..\Bin\"</Command>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dxguid.lib;XUSG.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)XUSG\Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)XUSG\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"
-COPY /Y "$(ProjectDir)XUSG\Release\*.dll" "$(ProjectDir)..\Bin\"</Command>
+COPY /Y "$(ProjectDir)XUSG\$(Platform)\$(Configuration)\*.dll" "$(ProjectDir)..\Bin\"
+
+</Command>
     </PostBuildEvent>
     <FxCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)XUSG\Shaders;$(ProjectDir)XUSG\Advanced</AdditionalIncludeDirectories>
@@ -156,11 +162,13 @@ COPY /Y "$(ProjectDir)XUSG\Release\*.dll" "$(ProjectDir)..\Bin\"</Command>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dxguid.lib;XUSG.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)XUSG\x64\Release</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)XUSG\$(Platform)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>COPY /Y "$(OutDir)*.exe" "$(ProjectDir)..\Bin\"
-COPY /Y "$(ProjectDir)XUSG\x64\Release\*.dll" "$(ProjectDir)..\Bin\"</Command>
+COPY /Y "$(ProjectDir)XUSG\$(Platform)\$(Configuration)\*.dll" "$(ProjectDir)..\Bin\"
+
+</Command>
     </PostBuildEvent>
     <FxCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)XUSG\Shaders;$(ProjectDir)XUSG\Advanced</AdditionalIncludeDirectories>
