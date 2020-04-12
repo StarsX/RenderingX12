@@ -84,7 +84,7 @@ void RenderingX::LoadPipeline()
 	ThrowIfFailed(hr);
 
 	// Create the command queue.
-	N_RETURN(m_device->GetCommandQueue(m_commandQueue, CommandListType::DIRECT, CommandQueueFlags::NONE), ThrowIfFailed(E_FAIL));
+	N_RETURN(m_device->GetCommandQueue(m_commandQueue, CommandListType::DIRECT, CommandQueueFlag::NONE), ThrowIfFailed(E_FAIL));
 
 	// Create the swap chain.
 	CreateSwapchain();
