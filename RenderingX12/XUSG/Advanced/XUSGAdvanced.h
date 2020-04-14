@@ -26,7 +26,7 @@ namespace XUSG
 			ALPHA_MODE_CUSTOM
 		};
 
-		class DLL_EXPORT Loader
+		class DLL_INTERFACE Loader
 		{
 		public:
 			Loader();
@@ -67,7 +67,7 @@ namespace XUSG
 	};
 	using TextureCache = std::shared_ptr<std::map<std::string, TextureCacheEntry>>;
 
-	class DLL_EXPORT SDKMesh
+	class DLL_INTERFACE SDKMesh
 	{
 	public:
 		static const auto MAX_VERTEX_STREAMS	= 16u;
@@ -295,7 +295,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Model base
 	//--------------------------------------------------------------------------------------
-	class DLL_EXPORT Model
+	class DLL_INTERFACE Model
 	{
 	public:
 		enum PipelineLayoutIndex : uint8_t
@@ -390,7 +390,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Character model
 	//--------------------------------------------------------------------------------------
-	class DLL_EXPORT Character :
+	class DLL_INTERFACE Character :
 		public virtual Model
 	{
 	public:
@@ -460,7 +460,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Static model
 	//--------------------------------------------------------------------------------------
-	class DLL_EXPORT StaticModel :
+	class DLL_INTERFACE StaticModel :
 		public virtual Model
 	{
 	public:
@@ -512,7 +512,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	class OctNode;
 	using Octree = std::unique_ptr<OctNode>;
-	class DLL_EXPORT OctNode
+	class DLL_INTERFACE OctNode
 	{
 	public:
 		enum Visibility : uint8_t
@@ -549,7 +549,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Shadow
 	//--------------------------------------------------------------------------------------
-	class DLL_EXPORT Shadow
+	class DLL_INTERFACE Shadow
 	{
 	public:
 		//Shadow(const Device& device);
@@ -582,7 +582,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Nature objects 
 	//--------------------------------------------------------------------------------------
-	class DLL_EXPORT Nature
+	class DLL_INTERFACE Nature
 	{
 	public:
 		//Nature(const Device& device);
@@ -615,7 +615,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Scene
 	//--------------------------------------------------------------------------------------
-	class DLL_EXPORT Scene
+	class DLL_INTERFACE Scene
 	{
 	public:
 		enum GBufferIndex : uint8_t
@@ -688,7 +688,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Postprocess
 	//--------------------------------------------------------------------------------------
-	class DLL_EXPORT Postprocess
+	class DLL_INTERFACE Postprocess
 	{
 	public:
 		enum PipelineIndex : uint8_t
