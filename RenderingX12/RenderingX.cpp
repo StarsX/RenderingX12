@@ -14,7 +14,7 @@
 using namespace std;
 using namespace XUSG;
 
-RenderingX::RenderingX(uint32_t width, uint32_t height, std::wstring name) :
+RenderingX::RenderingX(uint32_t width, uint32_t height, wstring name) :
 	DXFramework(width, height, name),
 	m_frameParity(0),
 	m_frameIndex(0),
