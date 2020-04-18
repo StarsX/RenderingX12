@@ -111,7 +111,8 @@ void RenderingX::LoadAssets()
 
 	// Create the command list.
 	m_commandList = CommandList::MakeUnique();
-	N_RETURN(m_device->GetCommandList(m_commandList->GetCommandList(), 0, CommandListType::DIRECT,
+	const auto pCommandList = m_commandList.get();
+	N_RETURN(m_device->GetCommandList(*pCommandList, 0, CommandListType::DIRECT,
 		m_commandAllocators[m_frameIndex], nullptr), ThrowIfFailed(E_FAIL));
 
 	// Load scene asset
@@ -129,7 +130,7 @@ void RenderingX::LoadAssets()
 		// Create scene
 		m_scene = Scene::MakeUnique(m_device);
 		//m_scene->SetRenderTarget(m_rtHDR, m_depth);
-		N_RETURN(m_scene->LoadAssets(&sceneReader, m_commandList.get(), m_shaderPool,
+		N_RETURN(m_scene->LoadAssets(&sceneReader, pCommandList, m_shaderPool,
 			m_graphicsPipelineCache, m_computePipelineCache, m_pipelineLayoutCache,
 			m_descriptorTableCache, uploaders, FormatHDR, FormatDepth, m_useIBL),
 			ThrowIfFailed(E_FAIL));
@@ -143,9 +144,8 @@ void RenderingX::LoadAssets()
 	}
 
 	// Close the command list and execute it to begin the initial GPU setup.
-	ThrowIfFailed(m_commandList->Close());
-	BaseCommandList* const ppCommandLists[] = { m_commandList->GetCommandList().get() };
-	m_commandQueue->ExecuteCommandLists(static_cast<uint32_t>(size(ppCommandLists)), ppCommandLists);
+	ThrowIfFailed(pCommandList->Close());
+	m_commandQueue->SubmitCommandList(pCommandList);
 
 	// Create synchronization objects and wait until assets have been uploaded to the GPU.
 	{
@@ -277,8 +277,7 @@ void RenderingX::ResizeAssets()
 
 	// Close the command list and execute it to begin the initial GPU setup.
 	ThrowIfFailed(m_commandList->Close());
-	BaseCommandList* const ppCommandLists[] = { m_commandList->GetCommandList().get() };
-	m_commandQueue->ExecuteCommandLists(static_cast<uint32_t>(size(ppCommandLists)), ppCommandLists);
+	m_commandQueue->SubmitCommandList(m_commandList.get());
 
 	// Create synchronization objects and wait until assets have been uploaded to the GPU.
 	{
@@ -327,8 +326,7 @@ void RenderingX::OnRender()
 	PopulateCommandList();
 
 	// Execute the command list.
-	BaseCommandList* const ppCommandLists[] = { m_commandList->GetCommandList().get() };
-	m_commandQueue->ExecuteCommandLists(static_cast<uint32_t>(size(ppCommandLists)), ppCommandLists);
+	m_commandQueue->SubmitCommandList(m_commandList.get());
 
 	// Present the frame.
 	ThrowIfFailed(m_swapChain->Present(0, 0));
