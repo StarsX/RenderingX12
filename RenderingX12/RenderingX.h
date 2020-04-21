@@ -103,7 +103,7 @@ private:
 
 	// Synchronization objects.
 	uint8_t		m_frameParity;
-	uint32_t	m_frameIndex;
+	uint8_t		m_frameIndex;
 	HANDLE		m_fenceEvent;
 	XUSG::Fence	m_fence;
 	uint64_t	m_fenceValues[FrameCount];
