@@ -54,7 +54,7 @@ private:
 		NUM_RENDER_QUEUE
 	};
 
-	static const uint32_t FrameCount = XUSG::Model::GetFrameCount();
+	static const auto FrameCount = XUSG::Model::GetFrameCount();
 
 	enum SrvTableIndex : uint8_t
 	{
