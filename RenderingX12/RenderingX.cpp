@@ -54,7 +54,7 @@ void RenderingX::LoadPipeline()
 	// Enable the debug layer (requires the Graphics Tools "optional feature").
 	// NOTE: Enabling the debug layer after device creation will invalidate the active device.
 	{
-		com_ptr<ID3D12Debug1> debugController;
+		com_ptr<ID3D12Debug1> debugController = nullptr;
 		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
 		{
 			debugController->EnableDebugLayer();
@@ -69,7 +69,7 @@ void RenderingX::LoadPipeline()
 	ThrowIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&m_factory)));
 
 	DXGI_ADAPTER_DESC1 dxgiAdapterDesc;
-	com_ptr<IDXGIAdapter1> dxgiAdapter;
+	com_ptr<IDXGIAdapter1> dxgiAdapter = nullptr;
 	auto hr = DXGI_ERROR_UNSUPPORTED;
 	for (auto i = 0u; hr == DXGI_ERROR_UNSUPPORTED; ++i)
 	{
@@ -198,7 +198,7 @@ void RenderingX::CreateSwapchain()
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.SampleDesc.Count = 1;
 
-	com_ptr<IDXGISwapChain1> swapChain;
+	com_ptr<IDXGISwapChain1> swapChain = nullptr;
 	ThrowIfFailed(m_factory->CreateSwapChainForHwnd(
 		m_commandQueue.get(),		// Swap chain needs the queue so that it can force a flush on it.
 		Win32Application::GetHwnd(),
@@ -209,7 +209,7 @@ void RenderingX::CreateSwapchain()
 	));
 
 	// Store the swap chain.
-	ThrowIfFailed(swapChain.As(&m_swapChain));
+	ThrowIfFailed(swapChain->QueryInterface(IID_PPV_ARGS(&m_swapChain)));
 
 	// This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut.
 	ThrowIfFailed(m_factory->MakeWindowAssociation(Win32Application::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
@@ -290,14 +290,11 @@ void RenderingX::ResizeAssets()
 
 	// Create synchronization objects and wait until assets have been uploaded to the GPU.
 	{
-		N_RETURN(m_device->GetFence(m_fence, m_fenceValues[m_frameIndex]++, FenceFlag::NONE), ThrowIfFailed(E_FAIL));
+		if (!m_fence) N_RETURN(m_device->GetFence(m_fence, m_fenceValues[m_frameIndex]++, FenceFlag::NONE), ThrowIfFailed(E_FAIL));
 
 		// Create an event handle to use for frame synchronization.
 		m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		if (m_fenceEvent == nullptr)
-		{
-			ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
-		}
+		if (!m_fenceEvent) ThrowIfFailed(HRESULT_FROM_WIN32(GetLastError()));
 
 		// Wait for the command list to execute; we are reusing the same command 
 		// list in our main loop but for now, we just want to wait for setup to 
