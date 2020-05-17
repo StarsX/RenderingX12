@@ -166,11 +166,11 @@ void RenderingX::LoadAssets()
 
 	// Setup the camera's view parameters
 	{
-		const auto focus_dist = m_scene->GetFocusAndDistance();
-		const auto viewDist = XMVectorGetW(focus_dist);
+		const auto focusDist = m_scene->GetFocusAndDistance();
+		const auto viewDist = XMVectorGetW(focusDist);
 		const auto viewDisp = XMVectorSet(0.0f, 0.0f, viewDist, 0.0f);
-		const auto eyePt = focus_dist - viewDisp;
-		const auto view = XMMatrixLookAtLH(eyePt, focus_dist, XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f));
+		const auto eyePt = focusDist - viewDisp;
+		const auto view = XMMatrixLookAtLH(eyePt, focusDist, XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f));
 		XMStoreFloat3(&m_eyePt, eyePt);
 		XMStoreFloat4x4(&m_view, view);
 	}
@@ -183,7 +183,7 @@ void RenderingX::CreateSwapchain()
 	swapChainDesc.BufferCount = FrameCount;
 	swapChainDesc.Width = m_width;
 	swapChainDesc.Height = m_height;
-	swapChainDesc.Format = static_cast<DXGI_FORMAT>(FormatLDR);;
+	swapChainDesc.Format = static_cast<DXGI_FORMAT>(FormatLDR);
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.SampleDesc.Count = 1;
