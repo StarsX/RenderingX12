@@ -255,7 +255,7 @@ void RenderingX::ResizeAssets()
 
 	// Post process
 	{
-		N_RETURN(m_postprocess->ChangeWindowSize(*m_rtHDR, m_scene->GetGBufferSRV(Scene::ALBEDO_IDX)), ThrowIfFailed(E_FAIL));
+		N_RETURN(m_postprocess->ChangeWindowSize(*m_rtHDR, m_scene->GetGBuffer(Scene::ALBEDO_IDX)->GetSRV()), ThrowIfFailed(E_FAIL));
 
 		// Create Descriptor tables
 		const auto srvTable = Util::DescriptorTable::MakeUnique();
@@ -266,8 +266,8 @@ void RenderingX::ResizeAssets()
 		for (auto n = 0u; n < 2; ++n)
 		{
 			X_RETURN(m_srvTables[SRV_AA_INPUT + n], m_postprocess->CreateTemporalAASRVTable(
-				m_rtLDR->GetSRV(), m_rtTAAs[!n]->GetSRV(), m_scene->GetGBufferSRV(Scene::MOTION_IDX),
-				m_scene->GetGBufferSRV(Scene::MATENC_IDX)), ThrowIfFailed(E_FAIL));
+				m_rtLDR->GetSRV(), m_rtTAAs[!n]->GetSRV(), m_scene->GetGBuffer(Scene::MOTION_IDX)->GetSRV(),
+				m_scene->GetShadowMask()->GetSRV()), ThrowIfFailed(E_FAIL));
 
 			const auto srvTable = Util::DescriptorTable::MakeUnique();
 			srvTable->SetDescriptors(0, 1, &m_rtTAAs[n]->GetSRV(), Postprocess::RESIZABLE_POOL);
@@ -524,12 +524,13 @@ void RenderingX::PopulateCommandList()
 	m_scene->Render(pCommandList);
 
 	// Postprocessing
-	ResourceBarrier barriers[2];
+	ResourceBarrier barriers[3];
 	m_postprocess->Render(pCommandList, *m_rtLDR, *m_rtHDR, m_rtLDR->GetRTV(), m_srvTables[SRV_HDR]);
 
 	// Temporal AA
 	auto numBarriers = m_rtTAAs[m_frameParity]->SetBarrier(barriers, ResourceState::RENDER_TARGET);
 	numBarriers = m_rtLDR->SetBarrier(barriers, ResourceState::PIXEL_SHADER_RESOURCE, numBarriers);
+	numBarriers = m_scene->GetShadowMask()->SetBarrier(barriers, ResourceState::PIXEL_SHADER_RESOURCE, numBarriers);
 	pCommandList->Barrier(numBarriers, barriers);
 	m_postprocess->Antialias(pCommandList, &m_rtTAAs[m_frameParity]->GetRTV(), m_srvTables[SRV_AA_INPUT + m_frameParity]);
 

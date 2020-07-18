@@ -339,9 +339,8 @@ namespace XUSG
 		{
 			SAMPLERS_OFFSET,
 			MATERIAL_OFFSET,
-			SHADOW_MAP_OFFSET,
-			ALPHA_REF_OFFSET = SHADOW_MAP_OFFSET,
-			IMMUTABLE_OFFSET
+			IMMUTABLE_OFFSET,
+			ALPHA_REF_OFFSET = IMMUTABLE_OFFSET
 		};
 
 		enum CBVTableIndex : uint8_t
@@ -361,7 +360,7 @@ namespace XUSG
 			const PipelineLayoutCache::sptr& pipelineLayoutCache,
 			const DescriptorTableCache::sptr& descriptorTableCache) = 0;
 		virtual void Update(uint8_t frameIndex) = 0;
-		virtual void SetMatrices(DirectX::CXMMATRIX viewProj, DirectX::CXMMATRIX world, DirectX::FXMMATRIX* pShadowView = nullptr,
+		virtual void SetMatrices(DirectX::CXMMATRIX viewProj, DirectX::CXMMATRIX world,
 			DirectX::FXMMATRIX* pShadows = nullptr, uint8_t numShadows = 0, bool isTemporal = true) = 0;
 		virtual void SetPipelineLayout(const CommandList* pCommandList, PipelineLayoutIndex layout) = 0;
 		virtual void SetPipeline(const CommandList* pCommandList, PipelineIndex pipeline) = 0;
@@ -398,13 +397,12 @@ namespace XUSG
 		{
 			SAMPLERS = VARIABLE_SLOT,
 			MATERIAL,
-			SHADOW_MAP,
-#if TEMPORAL
-			HISTORY,
-#endif
+			IMMUTABLE,
 			PER_FRAME,
-			IMMUATABLE,
-			ALPHA_REF = SHADOW_MAP
+			ALPHA_REF = IMMUTABLE,
+#if TEMPORAL
+			HISTORY = IMMUTABLE
+#endif
 		};
 
 		struct MeshLink
@@ -430,11 +428,10 @@ namespace XUSG
 		virtual void InitPosition(const DirectX::XMFLOAT4& posRot) = 0;
 		virtual void Update(uint8_t frameIndex, double time) = 0;
 		virtual void Update(uint8_t frameIndex, double time, DirectX::CXMMATRIX viewProj,
-			DirectX::FXMMATRIX* pWorld = nullptr, DirectX::FXMMATRIX* pShadowView = nullptr,
-			DirectX::FXMMATRIX* pShadows = nullptr, uint8_t numShadows = 0, bool isTemporal = true) = 0;
-		virtual void SetMatrices(DirectX::CXMMATRIX viewProj, DirectX::FXMMATRIX* pWorld = nullptr,
-			DirectX::FXMMATRIX* pShadowView = nullptr, DirectX::FXMMATRIX* pShadows = nullptr,
+			DirectX::FXMMATRIX* pWorld = nullptr, DirectX::FXMMATRIX* pShadows = nullptr,
 			uint8_t numShadows = 0, bool isTemporal = true) = 0;
+		virtual void SetMatrices(DirectX::CXMMATRIX viewProj, DirectX::FXMMATRIX* pWorld = nullptr,
+			DirectX::FXMMATRIX* pShadows = nullptr, uint8_t numShadows = 0, bool isTemporal = true) = 0;
 		virtual void SetSkinningPipeline(const CommandList* pCommandList) = 0;
 		virtual void Skinning(const CommandList* pCommandList, uint32_t& numBarriers,
 			ResourceBarrier* pBarriers, bool reset = false) = 0;
@@ -488,8 +485,7 @@ namespace XUSG
 		//virtual void CreateBoundCBuffer() = 0;
 		virtual void Update(uint8_t frameIndex) = 0;
 		virtual void Update(uint8_t frameIndex, DirectX::CXMMATRIX viewProj, DirectX::CXMMATRIX world,
-			DirectX::FXMMATRIX* pShadowView = nullptr, DirectX::FXMMATRIX* pShadows = nullptr,
-			uint8_t numShadows = 0, bool isTemporal = true) = 0;
+			DirectX::FXMMATRIX* pShadows = nullptr, uint8_t numShadows = 0, bool isTemporal = true) = 0;
 		virtual void Render(const CommandList* pCommandList, uint32_t mesh, PipelineLayoutIndex layout,
 			SubsetFlags subsetFlags = SUBSET_FULL, uint8_t matrixTableIndex = CBV_MATRICES,
 			uint32_t numInstances = 1) = 0;
@@ -559,6 +555,7 @@ namespace XUSG
 		virtual bool Init(float sceneMapSize, float shadowMapSize,
 			const DescriptorTableCache::sptr& descriptorTableCache,
 			uint8_t numCasLevels = NUM_CASCADE) = 0;
+		virtual bool CreateDescriptorTables() = 0;
 		// This runs per frame. This data could be cached when the cameras do not move.
 		virtual void Update(uint8_t frameIndex, const DirectX::XMFLOAT4X4& view,
 			const DirectX::XMFLOAT4X4& proj, const DirectX::XMFLOAT4& lightPt) = 0;
@@ -622,14 +619,14 @@ namespace XUSG
 		{
 			ALBEDO_IDX,
 			NORMAL_IDX,
-			MATENC_IDX,
+			RGHMTL_IDX,
 #if TEMPORAL
 			MOTION_IDX,
 #endif
 			AO_IDX,
 
 			NUM_GBUFFER,
-			NUM_GB_FIXED = MATENC_IDX + 1,
+			NUM_GB_FIXED = RGHMTL_IDX + 1,
 			NUM_GB_RTV = AO_IDX
 		};
 
@@ -670,14 +667,14 @@ namespace XUSG
 		virtual void SetViewProjMatrix(DirectX::CXMMATRIX view, DirectX::CXMMATRIX proj) = 0;
 		virtual void SetEyePoint(DirectX::CXMVECTOR eyePt) = 0;
 		virtual void SetFocusAndDistance(DirectX::CXMVECTOR focus_dist) = 0;
-		virtual void SetRenderTarget(RenderTarget& renderTarget, DepthStencil& depth) = 0;
+		virtual void SetRenderTarget(RenderTarget& renderTarget, DepthStencil& depth, bool createFB = true) = 0;
 		virtual void SetViewport(const Viewport& viewport, const RectRange& scissorRect) = 0;
 
 		virtual DirectX::FXMVECTOR GetFocusAndDistance() const = 0;
 		virtual const DescriptorTable& GetCBVTable(uint8_t i) const = 0;
 		virtual const RenderTarget::sptr GetGBuffer(const uint8_t i) const = 0;
-		virtual Descriptor GetGBufferSRV(const uint8_t i) const = 0;
-
+		virtual const RenderTarget::sptr GetShadowMask() const = 0;
+		
 		using uptr = std::unique_ptr<Scene>;
 		using sptr = std::shared_ptr<Scene>;
 
@@ -733,7 +730,7 @@ namespace XUSG
 			uint8_t numRTVs = 1, bool reset = false) = 0;
 
 		virtual DescriptorTable CreateTemporalAASRVTable(const Descriptor& srvCurrent, const Descriptor& srvPrevious,
-			const Descriptor& srvVelocity, const Descriptor& pSRVMatEnc) = 0;
+			const Descriptor& srvVelocity, const Descriptor& pSRVMask) = 0;
 
 		using uptr = std::unique_ptr<Postprocess>;
 		using sptr = std::shared_ptr<Postprocess>;
