@@ -58,7 +58,6 @@ private:
 
 	enum SrvTableIndex : uint8_t
 	{
-		SRV_HDR,
 		SRV_AA_INPUT,
 		SRV_ANTIALIASED = SRV_AA_INPUT + 2,
 
@@ -88,9 +87,10 @@ private:
 	// App resources.
 	XUSG::Scene::uptr			m_scene;
 	XUSG::Postprocess::uptr		m_postprocess;
-	XUSG::RenderTarget::uptr	m_rtHDR;
-	XUSG::RenderTarget::uptr	m_rtLDR;
+	XUSG::RenderTarget::uptr	m_rtColor;
+	XUSG::RenderTarget::uptr	m_rtMasks;
 	XUSG::RenderTarget::uptr	m_rtTAAs[2];
+	XUSG::RenderTarget::uptr	m_rtMetas[2];
 	XUSG::DepthStencil::uptr	m_depth;
 	XMFLOAT4X4	m_proj;
 	XMFLOAT4X4	m_view;

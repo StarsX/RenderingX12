@@ -98,7 +98,6 @@ void RenderingX::LoadPipeline()
 
 	// Create descriptor table cache.
 	m_descriptorTableCache = DescriptorTableCache::MakeShared(m_device, L"DescriptorTableCache");
-
 }
 
 // Load the sample assets.
@@ -164,6 +163,17 @@ void RenderingX::LoadAssets()
 		WaitForGpu();
 	}
 
+	// Create window size dependent resources.
+	CreateResources();
+	ResizeAssets();
+
+	// Projection
+	{
+		const auto aspectRatio = m_width / static_cast<float>(m_height);
+		const auto proj = XMMatrixPerspectiveFovLH(g_FOVAngleY, aspectRatio, g_zNear, g_zFar);
+		XMStoreFloat4x4(&m_proj, proj);
+	}
+
 	// Setup the camera's view parameters
 	{
 		const auto focusDist = m_scene->GetFocusAndDistance();
@@ -219,20 +229,23 @@ void RenderingX::CreateResources()
 	for (auto n = 0u; n < 2; ++n)
 	{
 		m_rtTAAs[n] = RenderTarget::MakeUnique();
-		N_RETURN(m_rtTAAs[n]->Create(m_device, m_width, m_height, FormatLDR, 1, ResourceFlag::NONE,
+		N_RETURN(m_rtTAAs[n]->Create(m_device, m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
 			1, 1, nullptr, false, (L"TemporalAA_RT" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
+
+		m_rtMetas[n] = RenderTarget::MakeUnique();
+		N_RETURN(m_rtMetas[n]->Create(m_device, m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
+			1, 1, nullptr, false, (L"TAA_Metadata_RT" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
 	}
 
 	// Create HDR RT
-	m_rtHDR = RenderTarget::MakeUnique();
-	N_RETURN(m_rtHDR->Create(m_device, m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
-		1, 1, nullptr, false, L"HDR_RT"), ThrowIfFailed(E_FAIL));
+	m_rtColor = RenderTarget::MakeUnique();
+	N_RETURN(m_rtColor->Create(m_device, m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
+		1, 1, nullptr, false, L"Color_RT"), ThrowIfFailed(E_FAIL));
 
-	// Create LDR RT
-	m_rtLDR = RenderTarget::MakeUnique();
-	N_RETURN(m_rtLDR->Create(m_device, m_width, m_height, FormatLDR, 1, ResourceFlag::NONE,
-		1, 1, nullptr, false, L"LDR_RT"),
-		ThrowIfFailed(E_FAIL));
+	// Create Mask RT
+	m_rtMasks = RenderTarget::MakeUnique();
+	N_RETURN(m_rtMasks->Create(m_device, m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
+		1, 1, nullptr, false, L"Mask_RT"), ThrowIfFailed(E_FAIL));
 
 	// Create a DSV
 	m_depth = DepthStencil::MakeUnique();
@@ -251,26 +264,22 @@ void RenderingX::ResizeAssets()
 
 	// Scene
 	vector<Resource> uploaders;
-	N_RETURN(m_scene->ChangeWindowSize(m_commandList.get(), uploaders, *m_rtHDR, *m_depth), ThrowIfFailed(E_FAIL));
+	N_RETURN(m_scene->ChangeWindowSize(m_commandList.get(), uploaders, *m_rtColor, *m_depth, *m_rtMasks), ThrowIfFailed(E_FAIL));
 
 	// Post process
 	{
-		N_RETURN(m_postprocess->ChangeWindowSize(*m_rtHDR, m_scene->GetGBuffer(Scene::ALBEDO_IDX)->GetSRV()), ThrowIfFailed(E_FAIL));
+		N_RETURN(m_postprocess->ChangeWindowSize(*m_rtColor), ThrowIfFailed(E_FAIL));
 
 		// Create Descriptor tables
-		const auto srvTable = Util::DescriptorTable::MakeUnique();
-		const Descriptor srvs[] = { m_rtHDR->GetSRV(), m_depth->GetSRV() };
-		srvTable->SetDescriptors(0, static_cast<uint32_t>(size(srvs)), srvs, Postprocess::RESIZABLE_POOL);
-		X_RETURN(m_srvTables[SRV_HDR], srvTable->GetCbvSrvUavTable(*m_descriptorTableCache), ThrowIfFailed(E_FAIL));
-
 		for (auto n = 0u; n < 2; ++n)
 		{
 			X_RETURN(m_srvTables[SRV_AA_INPUT + n], m_postprocess->CreateTemporalAASRVTable(
-				m_rtLDR->GetSRV(), m_rtTAAs[!n]->GetSRV(), m_scene->GetGBuffer(Scene::MOTION_IDX)->GetSRV(),
-				m_scene->GetShadowMask()->GetSRV()), ThrowIfFailed(E_FAIL));
+				m_rtColor->GetSRV(), m_rtTAAs[!n]->GetSRV(), m_scene->GetGBuffer(Scene::MOTION_IDX)->GetSRV(),
+				m_rtMasks->GetSRV(), m_rtMetas[!n]->GetSRV()), ThrowIfFailed(E_FAIL));
 
 			const auto srvTable = Util::DescriptorTable::MakeUnique();
-			srvTable->SetDescriptors(0, 1, &m_rtTAAs[n]->GetSRV(), Postprocess::RESIZABLE_POOL);
+			const Descriptor srvs[] = { m_rtTAAs[n]->GetSRV(), m_depth->GetSRV() };
+			srvTable->SetDescriptors(0, static_cast<uint32_t>(size(srvs)), srvs, Postprocess::RESIZABLE_POOL);
 			X_RETURN(m_srvTables[SRV_ANTIALIASED + n], srvTable->GetCbvSrvUavTable(*m_descriptorTableCache), ThrowIfFailed(E_FAIL));
 		}
 	}
@@ -523,27 +532,21 @@ void RenderingX::PopulateCommandList()
 	//m_commandList.ClearRenderTargetView(m_renderTargets[m_frameIndex].GetRTV(), clearColor);
 	m_scene->Render(pCommandList);
 
-	// Postprocessing
-	ResourceBarrier barriers[3];
-	m_postprocess->Render(pCommandList, *m_rtLDR, *m_rtHDR, m_rtLDR->GetRTV(), m_srvTables[SRV_HDR]);
-
 	// Temporal AA
-	auto numBarriers = m_rtTAAs[m_frameParity]->SetBarrier(barriers, ResourceState::RENDER_TARGET);
-	numBarriers = m_rtLDR->SetBarrier(barriers, ResourceState::PIXEL_SHADER_RESOURCE, numBarriers);
-	numBarriers = m_scene->GetShadowMask()->SetBarrier(barriers, ResourceState::PIXEL_SHADER_RESOURCE, numBarriers);
-	pCommandList->Barrier(numBarriers, barriers);
-	m_postprocess->Antialias(pCommandList, &m_rtTAAs[m_frameParity]->GetRTV(), m_srvTables[SRV_AA_INPUT + m_frameParity]);
+	RenderTarget* ppDsts[] = { m_rtTAAs[m_frameParity].get(), m_rtMetas[m_frameParity].get() };
+	Texture2D* ppSrcs[] = { m_rtColor.get(), m_rtMasks.get(), m_rtMetas[!m_frameParity].get() };
+	m_postprocess->Antialias(pCommandList, ppDsts, ppSrcs, m_srvTables[SRV_AA_INPUT + m_frameParity],
+		static_cast<uint8_t>(size(ppDsts)), static_cast<uint8_t>(size(ppSrcs)));
 
-	// Unsharp
-	numBarriers = m_renderTargets[m_frameIndex]->SetBarrier(barriers, ResourceState::RENDER_TARGET);
-	numBarriers = m_rtTAAs[m_frameParity]->SetBarrier(barriers, ResourceState::PIXEL_SHADER_RESOURCE, numBarriers);
-	pCommandList->Barrier(numBarriers, barriers);
-	m_postprocess->Unsharp(pCommandList, &m_renderTargets[m_frameIndex]->GetRTV(), m_srvTables[SRV_ANTIALIASED + m_frameParity]);
+	// Postprocessing
+	m_postprocess->Render(pCommandList, *m_renderTargets[m_frameIndex], *m_rtTAAs[m_frameParity],
+		m_srvTables[SRV_ANTIALIASED + m_frameParity]);
 	m_frameParity = !m_frameParity;
 
 	// Indicate that the back buffer will now be used to present.
-	numBarriers = m_renderTargets[m_frameIndex]->SetBarrier(barriers, ResourceState::PRESENT);
-	pCommandList->Barrier(numBarriers, barriers);
+	ResourceBarrier barrier;
+	const auto numBarriers = m_renderTargets[m_frameIndex]->SetBarrier(&barrier, ResourceState::PRESENT);
+	pCommandList->Barrier(numBarriers, &barrier);
 
 	ThrowIfFailed(pCommandList->Close());
 }
