@@ -193,7 +193,7 @@ void RenderingX::CreateSwapchain()
 	swapChainDesc.BufferCount = FrameCount;
 	swapChainDesc.Width = m_width;
 	swapChainDesc.Height = m_height;
-	swapChainDesc.Format = static_cast<DXGI_FORMAT>(FormatLDR);
+	swapChainDesc.Format = GetDXGIFormat(FormatLDR);
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	swapChainDesc.SampleDesc.Count = 1;
