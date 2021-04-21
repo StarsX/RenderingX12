@@ -19,8 +19,8 @@
   // Characters
   "SkinnedMeshes": [
     {
-      "Mesh": "Media/Bright/Stars.sdkmesh",
-      "Anim": "Media/Bright/Stars.sdkmesh_anim"
+      "Mesh": "Assets/Bright/Stars.sdkmesh",
+      "Anim": "Assets/Bright/Stars.sdkmesh_anim"
     }
   ],
   "Characters": [
@@ -37,7 +37,7 @@
   "OctreeLooseCoeff": 0.97,
   "ShadowMapSize": 1360,
 
-  "StaticMeshes": [ "Media/Island/Island.sdkmesh" ],
+  "StaticMeshes": [ "Assets/Island/Island.sdkmesh" ],
   "StaticModels": [
     {
       "Name": "Island",
@@ -47,5 +47,5 @@
 
   // Natural environment
   "Water": 1,
-  "SkyTexture": "Media/sky.dds"
+  "SkyTexture": "Assets/sky.dds"
 }

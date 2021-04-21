@@ -22,7 +22,7 @@ RenderingX::RenderingX(uint32_t width, uint32_t height, wstring name) :
 	m_useIBL(true),
 	m_isPaused(false),
 	m_isTracking(false),
-	m_sceneFile(L"Media/Scene.json")
+	m_sceneFile(L"Assets/Scene.json")
 {
 #if defined (_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
