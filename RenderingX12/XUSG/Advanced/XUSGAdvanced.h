@@ -627,7 +627,7 @@ namespace XUSG
 		virtual void Update(uint8_t frameIndex, DirectX::FXMMATRIX* pViewProj, DirectX::FXMMATRIX* pWorld = nullptr) = 0;
 		virtual void SetGlobalCBVTables(DescriptorTable cbvImmutable, DescriptorTable cbvPerFrameTable) = 0;
 		virtual void RenderSky(const CommandList* pCommandList, bool reset = false) = 0;
-		virtual void RenderWater(const CommandList* pCommandList, const Framebuffer& framebuffer,
+		virtual void RenderWater(CommandList* pCommandList, const Framebuffer& framebuffer,
 			uint32_t& numBarriers, ResourceBarrier* pBarriers, bool reset = false) = 0;
 
 		virtual Descriptor GetSkySRV() const = 0;
@@ -696,7 +696,7 @@ namespace XUSG
 		virtual void Update(uint8_t frameIndex, double time, float timeStep,
 			DirectX::CXMMATRIX view, DirectX::CXMMATRIX proj,
 			DirectX::CXMVECTOR eyePt) = 0;
-		virtual void Render(const CommandList* pCommandList) = 0;
+		virtual void Render(CommandList* pCommandList) = 0;
 		virtual void SetViewProjMatrix(DirectX::CXMMATRIX view, DirectX::CXMMATRIX proj) = 0;
 		virtual void SetEyePoint(DirectX::CXMVECTOR eyePt) = 0;
 		virtual void SetFocusAndDistance(DirectX::CXMVECTOR focus_dist) = 0;
@@ -752,12 +752,12 @@ namespace XUSG
 
 		virtual void Update(const DescriptorTable& cbvImmutable, const DescriptorTable& cbvPerFrameTable,
 			float timeStep) = 0;
-		virtual void Render(const CommandList* pCommandList, RenderTarget* pDst, Texture* pSrc,
+		virtual void Render(CommandList* pCommandList, RenderTarget* pDst, Texture* pSrc,
 			const DescriptorTable& srvTable, bool clearRT = false) = 0;
 		virtual void ScreenRender(const CommandList* pCommandList, PipelineIndex pipelineIndex,
 			const DescriptorTable& srvTable, bool hasPerFrameCB, bool hasSampler, bool reset = false) = 0;
 		virtual void LumAdaption(const CommandList* pCommandList, const DescriptorTable& uavSrvTable, bool reset = false) = 0;
-		virtual void Antialias(const CommandList* pCommandList, RenderTarget** ppDsts, Texture** ppSrcs,
+		virtual void Antialias(CommandList* pCommandList, RenderTarget** ppDsts, Texture** ppSrcs,
 			const DescriptorTable& srvTable, uint8_t numRTVs, uint8_t numSRVs, bool reset = false) = 0;
 		virtual void Unsharp(const CommandList* pCommandList, const Descriptor* pRTVs, const DescriptorTable& srvTable,
 			uint8_t numRTVs = 1, bool reset = false) = 0;
