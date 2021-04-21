@@ -350,9 +350,11 @@ namespace XUSG
 			ALPHA_TWO_SIDED,
 			DEPTH_FRONT,
 			DEPTH_TWO_SIDED,
+			DEPTH_ALPHA_TWO_SIDED,
 			SHADOW_FRONT,
 			SHADOW_TWO_SIDED,
-			REFLECTED,
+			SHADOW_ALPHA_TWO_SIDED,
+			//REFLECTED,
 
 			NUM_PIPELINE
 		};
@@ -369,7 +371,6 @@ namespace XUSG
 
 		enum DescriptorTableSlotOffset : uint8_t
 		{
-			SAMPLERS_OFFSET,
 			MATERIAL_OFFSET,
 			ALPHA_REF_OFFSET,
 			IMMUTABLE_OFFSET = ALPHA_REF_OFFSET
@@ -392,7 +393,8 @@ namespace XUSG
 			const SDKMesh::sptr& mesh, const ShaderPool::sptr& shaderPool,
 			const Graphics::PipelineCache::sptr& pipelineCache,
 			const PipelineLayoutCache::sptr& pipelineLayoutCache,
-			const DescriptorTableCache::sptr& descriptorTableCache) = 0;
+			const DescriptorTableCache::sptr& descriptorTableCache,
+			bool twoSidedAll) = 0;
 		virtual void Update(uint8_t frameIndex) = 0;
 		virtual void SetMatrices(DirectX::CXMMATRIX world, bool isTemporal = true) = 0;
 #if TEMPORAL_AA
@@ -404,6 +406,8 @@ namespace XUSG
 		virtual void Render(const CommandList* pCommandList, SubsetFlags subsetFlags, uint8_t matrixTableIndex,
 			PipelineLayoutIndex layout = NUM_PIPELINE_LAYOUT, const DescriptorTable* pCbvPerFrameTable = nullptr,
 			uint32_t numInstances = 1) = 0;
+
+		virtual bool IsTwoSidedAll() const = 0;
 
 		Model* AsModel();
 
@@ -432,8 +436,7 @@ namespace XUSG
 	public:
 		enum DescriptorTableSlot : uint8_t
 		{
-			SAMPLERS = VARIABLE_SLOT,
-			MATERIAL,
+			MATERIAL = VARIABLE_SLOT,
 			ALPHA_REF,
 			SHADOW_MAP,
 			IMMUTABLE = ALPHA_REF,
@@ -460,7 +463,7 @@ namespace XUSG
 			const DescriptorTableCache::sptr& descriptorTableCache,
 			const std::shared_ptr<std::vector<SDKMesh>>& linkedMeshes = nullptr,
 			const std::shared_ptr<std::vector<MeshLink>>& meshLinks = nullptr,
-			const Format* rtvFormats = nullptr, uint32_t numRTVs = 0,
+			bool twoSidedAll = false, const Format* rtvFormats = nullptr, uint32_t numRTVs = 0,
 			Format dsvFormat = Format::UNKNOWN, Format shadowFormat = Format::UNKNOWN) = 0;
 		virtual void InitPosition(const DirectX::XMFLOAT4& posRot) = 0;
 		virtual void Update(uint8_t frameIndex, double time) = 0;
@@ -498,7 +501,6 @@ namespace XUSG
 		enum DescriptorTableSlot : uint8_t
 		{
 			PER_OBJECT = VARIABLE_SLOT,
-			SAMPLERS,
 			MATERIAL,
 			ALPHA_REF,
 			SHADOW_MAP,
@@ -513,9 +515,9 @@ namespace XUSG
 			const Graphics::PipelineCache::sptr& pipelineCache,
 			const PipelineLayoutCache::sptr& pipelineLayoutCache,
 			const DescriptorTableCache::sptr& descriptorTableCache,
-			std::vector<Resource::uptr>& uploaders, const Format* rtvFormats = nullptr,
-			uint32_t numRTVs = 0, Format dsvFormat = Format::UNKNOWN,
-			Format shadowFormat = Format::UNKNOWN) = 0;
+			std::vector<Resource::uptr>& uploaders, bool twoSidedAll = false,
+			const Format* rtvFormats = nullptr, uint32_t numRTVs = 0,
+			Format dsvFormat = Format::UNKNOWN, Format shadowFormat = Format::UNKNOWN) = 0;
 		virtual void Update(uint8_t frameIndex, DirectX::FXMMATRIX* pWorld = nullptr, bool isTemporal = true) = 0;
 		virtual void Render(const CommandList* pCommandList, uint32_t mesh, PipelineLayoutIndex layout,
 			SubsetFlags subsetFlags = SUBSET_FULL, const DescriptorTable* pCbvPerFrameTable = nullptr,
@@ -583,7 +585,9 @@ namespace XUSG
 
 		// This runs when the application is initialized.
 		virtual bool Init(const Device* pDevice, float sceneMapSize, float shadowMapSize,
-			const DescriptorTableCache::sptr& descriptorTableCache, uint8_t numCasLevels = NUM_CASCADE) = 0;
+			const DescriptorTableCache::sptr& descriptorTableCache,
+			Format format = Format::D24_UNORM_S8_UINT,
+			uint8_t numCasLevels = NUM_CASCADE) = 0;
 		virtual bool CreateDescriptorTables() = 0;
 		// This runs per frame. This data could be cached when the cameras do not move.
 		virtual void Update(uint8_t frameIndex, const DirectX::XMFLOAT4X4& view,
@@ -683,7 +687,8 @@ namespace XUSG
 			const Compute::PipelineCache::sptr& computePipelineCache,
 			const PipelineLayoutCache::sptr& pipelineLayoutCache,
 			const DescriptorTableCache::sptr& descriptorTableCache,
-			std::vector<Resource::uptr>& uploaders, Format rtvFormat, Format dsvFormat,
+			std::vector<Resource::uptr>& uploaders, Format rtvFormat,
+			Format dsvFormat, Format shadowFormat = Format::D24_UNORM_S8_UINT,
 			bool useIBL = false) = 0;
 		virtual bool ChangeWindowSize(CommandList* pCommandList,
 			std::vector<Resource::uptr>& uploaders,
@@ -754,7 +759,8 @@ namespace XUSG
 		virtual void Render(CommandList* pCommandList, RenderTarget* pDst, Texture* pSrc,
 			const DescriptorTable& srvTable, bool clearRT = false) = 0;
 		virtual void ScreenRender(const CommandList* pCommandList, PipelineIndex pipelineIndex,
-			const DescriptorTable& srvTable, bool hasPerFrameCB, bool hasSampler, bool reset = false) = 0;
+			const DescriptorTable& srvTable, bool hasImmutableCB, bool hasPerFrameCB,
+			bool reset = false) = 0;
 		virtual void LumAdaption(const CommandList* pCommandList, const DescriptorTable& uavSrvTable, bool reset = false) = 0;
 		virtual void Antialias(CommandList* pCommandList, RenderTarget** ppDsts, Texture** ppSrcs,
 			const DescriptorTable& srvTable, uint8_t numRTVs, uint8_t numSRVs, bool reset = false) = 0;
