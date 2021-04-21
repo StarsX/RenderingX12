@@ -79,7 +79,7 @@ void RenderingX::LoadPipeline()
 		dxgiAdapter = nullptr;
 		ThrowIfFailed(m_factory->EnumAdapters1(i, &dxgiAdapter));
 
-		m_device = Device::MakeShared();
+		m_device = Device::MakeShared(Api);
 		hr = m_device->Create(dxgiAdapter.get(), D3D_FEATURE_LEVEL_11_0);
 	}
 
@@ -89,7 +89,7 @@ void RenderingX::LoadPipeline()
 	ThrowIfFailed(hr);
 
 	// Create the command queue.
-	m_commandQueue = CommandQueue::MakeUnique();
+	m_commandQueue = CommandQueue::MakeUnique(Api);
 	N_RETURN(m_commandQueue->Create(m_device.get(), CommandListType::DIRECT, CommandQueueFlag::NONE,
 		0, 0, L"CommandQueue"), ThrowIfFailed(E_FAIL));
 
@@ -102,25 +102,25 @@ void RenderingX::LoadPipeline()
 	// Create a command allocator for each frame.
 	for (uint8_t n = 0; n < FrameCount; ++n)
 	{
-		m_commandAllocators[n] = CommandAllocator::MakeUnique();
+		m_commandAllocators[n] = CommandAllocator::MakeUnique(Api);
 		N_RETURN(m_commandAllocators[n]->Create(m_device.get(), CommandListType::DIRECT,
 			(L"CommandAllocator" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
 	}
 
 	// Create descriptor table cache.
-	m_descriptorTableCache = DescriptorTableCache::MakeShared(m_device.get(), L"DescriptorTableCache");
+	m_descriptorTableCache = DescriptorTableCache::MakeShared(m_device.get(), L"DescriptorTableCache", Api);
 }
 
 // Load the sample assets.
 void RenderingX::LoadAssets()
 {
-	m_shaderPool = ShaderPool::MakeShared();
-	m_graphicsPipelineCache = Graphics::PipelineCache::MakeShared(m_device.get());
-	m_computePipelineCache = Compute::PipelineCache::MakeShared(m_device.get());
-	m_pipelineLayoutCache = PipelineLayoutCache::MakeShared(m_device.get());
+	m_shaderPool = ShaderPool::MakeShared(Api);
+	m_graphicsPipelineCache = Graphics::PipelineCache::MakeShared(m_device.get(), Api);
+	m_computePipelineCache = Compute::PipelineCache::MakeShared(m_device.get(), Api);
+	m_pipelineLayoutCache = PipelineLayoutCache::MakeShared(m_device.get(), Api);
 
 	// Create the command list.
-	m_commandList = CommandList::MakeUnique();
+	m_commandList = CommandList::MakeUnique(Api);
 	const auto pCommandList = m_commandList.get();
 	N_RETURN(pCommandList->Create(m_device.get(), 0, CommandListType::DIRECT,
 		m_commandAllocators[m_frameIndex].get(), nullptr), ThrowIfFailed(E_FAIL));
@@ -138,7 +138,7 @@ void RenderingX::LoadAssets()
 		sceneReader.ReadJson(sceneString);
 
 		// Create scene
-		m_scene = Scene::MakeUnique(m_device);
+		m_scene = Scene::MakeUnique(m_device, Api);
 		//m_scene->SetRenderTarget(m_rtHDR, m_depth);
 		N_RETURN(m_scene->LoadAssets(&sceneReader, pCommandList, m_shaderPool,
 			m_graphicsPipelineCache, m_computePipelineCache, m_pipelineLayoutCache,
@@ -147,7 +147,7 @@ void RenderingX::LoadAssets()
 	}
 
 	{
-		m_postprocess = Postprocess::MakeUnique(m_device);
+		m_postprocess = Postprocess::MakeUnique(m_device, Api);
 		N_RETURN(m_postprocess->Init(m_shaderPool, m_graphicsPipelineCache,
 			m_computePipelineCache, m_pipelineLayoutCache, m_descriptorTableCache,
 			FormatHDR, FormatLDR), ThrowIfFailed(E_FAIL));
@@ -161,7 +161,7 @@ void RenderingX::LoadAssets()
 	{
 		if (!m_fence)
 		{
-			m_fence = Fence::MakeUnique();
+			m_fence = Fence::MakeUnique(Api);
 			N_RETURN(m_fence->Create(m_device.get(), m_fenceValues[m_frameIndex]++, FenceFlag::NONE, L"Fence"), ThrowIfFailed(E_FAIL));
 		}
 
@@ -204,7 +204,7 @@ void RenderingX::LoadAssets()
 void RenderingX::CreateSwapchain()
 {
 	// Describe and create the swap chain.
-	m_swapChain = SwapChain::MakeUnique();
+	m_swapChain = SwapChain::MakeUnique(Api);
 	N_RETURN(m_swapChain->Create(m_factory.get(), Win32Application::GetHwnd(), m_commandQueue.get(),
 		FrameCount, m_width, m_height, FormatLDR), ThrowIfFailed(E_FAIL));
 
@@ -218,34 +218,34 @@ void RenderingX::CreateResources()
 	// and create render target views for each of them.
 	for (uint8_t n = 0; n < FrameCount; ++n)
 	{
-		m_renderTargets[n] = RenderTarget::MakeUnique();
+		m_renderTargets[n] = RenderTarget::MakeUnique(Api);
 		N_RETURN(m_renderTargets[n]->CreateFromSwapChain(m_device.get(), m_swapChain.get(), n), ThrowIfFailed(E_FAIL));
 	}
 
 	// Create TAA RTs
 	for (auto n = 0u; n < 2; ++n)
 	{
-		m_temporalColors[n] = RenderTarget::MakeUnique();
+		m_temporalColors[n] = RenderTarget::MakeUnique(Api);
 		N_RETURN(m_temporalColors[n]->Create(m_device.get(), m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
 			1, 1, nullptr, false, MemoryFlag::NONE, (L"TemporalColor" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
 
-		m_metaBuffers[n] = RenderTarget::MakeUnique();
+		m_metaBuffers[n] = RenderTarget::MakeUnique(Api);
 		N_RETURN(m_metaBuffers[n]->Create(m_device.get(), m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
 			1, 1, nullptr, false, MemoryFlag::NONE, (L"MetadataBuffer" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
 	}
 
 	// Create HDR RT
-	m_sceneColor = RenderTarget::MakeShared();
+	m_sceneColor = RenderTarget::MakeShared(Api);
 	N_RETURN(m_sceneColor->Create(m_device.get(), m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
 		1, 1, nullptr, false, MemoryFlag::NONE, L"SceneColor"), ThrowIfFailed(E_FAIL));
 
 	// Create Mask RT
-	m_sceneMasks = RenderTarget::MakeShared();
+	m_sceneMasks = RenderTarget::MakeShared(Api);
 	N_RETURN(m_sceneMasks->Create(m_device.get(), m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
 		1, 1, nullptr, false, MemoryFlag::NONE, L"SceneMasks"), ThrowIfFailed(E_FAIL));
 
 	// Create a DSV
-	m_sceneDepth = DepthStencil::MakeShared();
+	m_sceneDepth = DepthStencil::MakeShared(Api);
 	N_RETURN(m_sceneDepth->Create(m_device.get(), m_width, m_height, Format::UNKNOWN, ResourceFlag::NONE,
 		1, 1, 1, 1.0f, 0, false, MemoryFlag::NONE, L"SceneDepth"), ThrowIfFailed(E_FAIL));
 
@@ -278,7 +278,7 @@ void RenderingX::ResizeAssets()
 				m_sceneColor->GetSRV(), m_temporalColors[!n]->GetSRV(), m_scene->GetGBuffer(Scene::MOTION_IDX)->GetSRV(),
 				m_sceneMasks->GetSRV(), m_metaBuffers[!n]->GetSRV()), ThrowIfFailed(E_FAIL));
 
-			const auto srvTable = Util::DescriptorTable::MakeUnique();
+			const auto srvTable = Util::DescriptorTable::MakeUnique(Api);
 			const Descriptor srvs[] = { m_temporalColors[n]->GetSRV(), m_sceneDepth->GetSRV() };
 			srvTable->SetDescriptors(0, static_cast<uint32_t>(size(srvs)), srvs, Postprocess::RESIZABLE_POOL);
 			X_RETURN(m_srvTables[SRV_ANTIALIASED + n], srvTable->GetCbvSrvUavTable(m_descriptorTableCache.get()), ThrowIfFailed(E_FAIL));
@@ -293,7 +293,7 @@ void RenderingX::ResizeAssets()
 	{
 		if (!m_fence)
 		{
-			m_fence = Fence::MakeUnique();
+			m_fence = Fence::MakeUnique(Api);
 			N_RETURN(m_fence->Create(m_device.get(), m_fenceValues[m_frameIndex]++, FenceFlag::NONE, L"Fence"), ThrowIfFailed(E_FAIL));
 		}
 
@@ -537,7 +537,7 @@ void RenderingX::PopulateCommandList()
 
 	// Temporal AA
 	RenderTarget* ppDsts[] = { m_temporalColors[m_frameParity].get(), m_metaBuffers[m_frameParity].get() };
-	Texture2D* ppSrcs[] = { m_sceneColor.get(), m_sceneMasks.get(), m_metaBuffers[!m_frameParity].get() };
+	Texture* ppSrcs[] = { m_sceneColor.get(), m_sceneMasks.get(), m_metaBuffers[!m_frameParity].get() };
 	m_postprocess->Antialias(pCommandList, ppDsts, ppSrcs, m_srvTables[SRV_AA_INPUT + m_frameParity],
 		static_cast<uint8_t>(size(ppDsts)), static_cast<uint8_t>(size(ppSrcs)));
 

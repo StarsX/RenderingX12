@@ -54,6 +54,7 @@ private:
 		NUM_RENDER_QUEUE
 	};
 
+	static const auto Api = XUSG::API::DIRECTX_12;
 	static const auto FrameCount = XUSG::Model::GetFrameCount();
 
 	enum SrvTableIndex : uint8_t
