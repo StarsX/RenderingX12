@@ -153,7 +153,7 @@ void RenderingX::LoadAssets()
 	}
 
 	// Close the command list and execute it to begin the initial GPU setup.
-	ThrowIfFailed(pCommandList->Close());
+	N_RETURN(pCommandList->Close(), ThrowIfFailed(E_FAIL));
 	m_commandQueue->ExecuteCommandList(pCommandList);
 
 	// Create synchronization objects and wait until assets have been uploaded to the GPU.
@@ -255,12 +255,15 @@ void RenderingX::CreateResources()
 
 void RenderingX::ResizeAssets()
 {
-	N_RETURN(m_commandAllocators[m_frameIndex]->Reset(), ThrowIfFailed(E_FAIL));
-	N_RETURN(m_commandList->Reset(m_commandAllocators[m_frameIndex].get(), nullptr), ThrowIfFailed(E_FAIL));
+	const auto pCommandAllocator = m_commandAllocators[m_frameIndex].get();
+	N_RETURN(pCommandAllocator->Reset(), ThrowIfFailed(E_FAIL));
+
+	const auto pCommandList = m_commandList.get();
+	N_RETURN(pCommandList->Reset(pCommandAllocator, nullptr), ThrowIfFailed(E_FAIL));
 
 	// Scene
 	vector<Resource::uptr> uploaders;
-	N_RETURN(m_scene->ChangeWindowSize(m_commandList.get(), uploaders,
+	N_RETURN(m_scene->ChangeWindowSize(pCommandList, uploaders,
 		m_sceneColor, m_sceneDepth, m_sceneMasks), ThrowIfFailed(E_FAIL));
 
 	// Post process
@@ -282,8 +285,8 @@ void RenderingX::ResizeAssets()
 	}
 
 	// Close the command list and execute it to begin the initial GPU setup.
-	ThrowIfFailed(m_commandList->Close());
-	m_commandQueue->ExecuteCommandList(m_commandList.get());
+	N_RETURN(pCommandList->Close(), ThrowIfFailed(E_FAIL));
+	m_commandQueue->ExecuteCommandList(pCommandList);
 
 	// Create synchronization objects and wait until assets have been uploaded to the GPU.
 	{
@@ -517,13 +520,14 @@ void RenderingX::PopulateCommandList()
 	// Command list allocators can only be reset when the associated 
 	// command lists have finished execution on the GPU; apps should use 
 	// fences to determine GPU execution progress.
-	N_RETURN(m_commandAllocators[m_frameIndex]->Reset(), ThrowIfFailed(E_FAIL));
+	const auto pCommandAllocator = m_commandAllocators[m_frameIndex].get();
+	N_RETURN(pCommandAllocator->Reset(), ThrowIfFailed(E_FAIL));
 
 	// However, when ExecuteCommandList() is called on a particular command 
 	// list, that command list can then be reset at any time and must be before 
 	// re-recording.
 	const auto pCommandList = m_commandList.get();
-	N_RETURN(pCommandList->Reset(m_commandAllocators[m_frameIndex].get(), nullptr), ThrowIfFailed(E_FAIL));
+	N_RETURN(pCommandList->Reset(pCommandAllocator, nullptr), ThrowIfFailed(E_FAIL));
 
 	// Record commands.
 	//const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
@@ -546,7 +550,7 @@ void RenderingX::PopulateCommandList()
 	const auto numBarriers = m_renderTargets[m_frameIndex]->SetBarrier(&barrier, ResourceState::PRESENT);
 	pCommandList->Barrier(numBarriers, &barrier);
 
-	ThrowIfFailed(pCommandList->Close());
+	N_RETURN(pCommandList->Close(), ThrowIfFailed(E_FAIL));
 }
 
 // Wait for pending GPU work to complete.
