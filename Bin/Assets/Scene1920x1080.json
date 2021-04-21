@@ -47,5 +47,5 @@
 
   // Natural environment
   "Water": 1,
-  "SkyTexture": "Media/sky.dds"
+  "SkyTexture": "Assets/sky.dds"
 }
