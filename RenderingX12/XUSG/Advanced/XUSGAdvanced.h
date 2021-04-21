@@ -59,7 +59,7 @@ namespace XUSG
 			ALPHA_MODE_CUSTOM
 		};
 
-		class DLL_INTERFACE Loader
+		class XUSG_INTERFACE Loader
 		{
 		public:
 			Loader();
@@ -101,7 +101,7 @@ namespace XUSG
 	};
 	using TextureCache = std::shared_ptr<std::map<std::string, TextureCacheEntry>>;
 
-	class DLL_INTERFACE SDKMesh
+	class XUSG_INTERFACE SDKMesh
 	{
 	public:
 		static const uint32_t MAX_VERTEX_STREAMS	= 16;
@@ -329,7 +329,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Model base
 	//--------------------------------------------------------------------------------------
-	class DLL_INTERFACE Model
+	class XUSG_INTERFACE Model
 	{
 	public:
 		enum PipelineLayoutIndex : uint8_t
@@ -430,7 +430,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Character model
 	//--------------------------------------------------------------------------------------
-	class DLL_INTERFACE Character :
+	class XUSG_INTERFACE Character :
 		public virtual Model
 	{
 	public:
@@ -494,7 +494,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Static model
 	//--------------------------------------------------------------------------------------
-	class DLL_INTERFACE StaticModel :
+	class XUSG_INTERFACE StaticModel :
 		public virtual Model
 	{
 	public:
@@ -540,7 +540,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	class OctNode;
 	using Octree = std::unique_ptr<OctNode>;
-	class DLL_INTERFACE OctNode
+	class XUSG_INTERFACE OctNode
 	{
 	public:
 		enum Visibility : uint8_t
@@ -577,7 +577,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Shadow
 	//--------------------------------------------------------------------------------------
-	class DLL_INTERFACE Shadow
+	class XUSG_INTERFACE Shadow
 	{
 	public:
 		//Shadow();
@@ -612,7 +612,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Nature objects 
 	//--------------------------------------------------------------------------------------
-	class DLL_INTERFACE Nature
+	class XUSG_INTERFACE Nature
 	{
 	public:
 		//Nature();
@@ -645,7 +645,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Scene
 	//--------------------------------------------------------------------------------------
-	class DLL_INTERFACE Scene
+	class XUSG_INTERFACE Scene
 	{
 	public:
 		enum GBufferIndex : uint8_t
@@ -722,7 +722,7 @@ namespace XUSG
 	//--------------------------------------------------------------------------------------
 	// Postprocess
 	//--------------------------------------------------------------------------------------
-	class DLL_INTERFACE Postprocess
+	class XUSG_INTERFACE Postprocess
 	{
 	public:
 		enum PipelineIndex : uint8_t
@@ -781,9 +781,9 @@ namespace XUSG
 	// Halton sequence helpers
 	//--------------------------------------------------------------------------------------
 
-	DLL_INTERFACE float Halton(uint32_t i, uint32_t b);
-	DLL_INTERFACE DirectX::XMFLOAT2 Halton(uint32_t i);
-	DLL_INTERFACE const DirectX::XMFLOAT2& IncrementalHalton();
+	XUSG_INTERFACE float Halton(uint32_t i, uint32_t b);
+	XUSG_INTERFACE DirectX::XMFLOAT2 Halton(uint32_t i);
+	XUSG_INTERFACE const DirectX::XMFLOAT2& IncrementalHalton();
 
 	//--------------------------------------------------------------------------------------
 	// Intrinsic shader Ids
