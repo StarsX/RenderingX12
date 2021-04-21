@@ -37,7 +37,12 @@
   "OctreeLooseCoeff": 0.97,
   "ShadowMapSize": 1360,
 
-  "StaticMeshes": [ "Assets/Island/Island.sdkmesh" ],
+  "StaticMeshes": [ 
+    {
+        "Mesh": "Assets/Island/Island.sdkmesh",
+        "TwoSidedAll": 0
+    }
+  ],
   "StaticModels": [
     {
       "Name": "Island",

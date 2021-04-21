@@ -142,8 +142,8 @@ void RenderingX::LoadAssets()
 		//m_scene->SetRenderTarget(m_rtHDR, m_depth);
 		N_RETURN(m_scene->LoadAssets(&sceneReader, pCommandList, m_shaderPool,
 			m_graphicsPipelineCache, m_computePipelineCache, m_pipelineLayoutCache,
-			m_descriptorTableCache, uploaders, FormatHDR, FormatDepth, m_useIBL),
-			ThrowIfFailed(E_FAIL));
+			m_descriptorTableCache, uploaders, FormatHDR, FormatDepth,
+			Format::D24_UNORM_S8_UINT, m_useIBL), ThrowIfFailed(E_FAIL));
 	}
 
 	{
