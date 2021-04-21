@@ -124,7 +124,7 @@ void RenderingX::LoadAssets()
 		m_commandAllocators[m_frameIndex].get(), nullptr), ThrowIfFailed(E_FAIL));
 
 	// Load scene asset
-	vector<Resource::sptr> uploaders;
+	vector<Resource::uptr> uploaders;
 	{
 		com_ptr<ID3DBlob> sceneFileBlob;
 		D3DReadFileToBlob(m_sceneFile.c_str(), &sceneFileBlob);
@@ -258,7 +258,7 @@ void RenderingX::ResizeAssets()
 	N_RETURN(m_commandList->Reset(m_commandAllocators[m_frameIndex].get(), nullptr), ThrowIfFailed(E_FAIL));
 
 	// Scene
-	vector<Resource::sptr> uploaders;
+	vector<Resource::uptr> uploaders;
 	N_RETURN(m_scene->ChangeWindowSize(m_commandList.get(), uploaders,
 		m_rtColor.get(), m_depth.get(), m_rtMasks.get()), ThrowIfFailed(E_FAIL));
 

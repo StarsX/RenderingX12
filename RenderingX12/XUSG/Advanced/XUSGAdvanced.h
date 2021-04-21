@@ -2,11 +2,60 @@
 // Copyright (c) XU, Tianchen. All rights reserved.
 //--------------------------------------------------------------------------------------
 
+#if HLSL_VERSION <= 0
+
 #pragma once
 
+#endif
+
+//--------------------------------------------------------------------------------------
+// Shader-shared constants
+//--------------------------------------------------------------------------------------
+
+#ifndef _XUSG_SHARED_CONST_H_
+#define _XUSG_SHARED_CONST_H_
+
+#ifndef FRAME_COUNT
+#define FRAME_COUNT		3
+#endif
+
+#ifndef TAA_SHOW_DIFF
+#define TAA_CLIP_DIFF	1
+#define TAA_FRAME_DIFF	2
+#define TAA_MOTION		3
+#define TAA_SHOW_DIFF	0
+#endif
+
+#ifndef TEMPORAL_SSAA
+#define TEMPORAL_SSAA	1
+#endif  
+#ifndef TEMPORAL_MSAA
+#define TEMPORAL_MSAA	2
+#endif
+
+#ifndef TEMPORAL_AA
+#define TEMPORAL_AA		TEMPORAL_SSAA
+#endif
+
+#ifndef TEMPORAL
+#define TEMPORAL		TEMPORAL_AA
+#endif  
+
+#ifndef NUM_CASCADE
+#define NUM_CASCADE		3
+#endif
+
+#define PIDIV4			0.785398163f
+
+static const float g_FOVAngleY = PIDIV4;
+static const float g_zNear = 1.0f;
+static const float g_zFar = 1000.0f;
+
+#endif
+
+#if HLSL_VERSION <= 0
+
 #include "Core/XUSG.h"
-#include "XUSGShaderCommon.h"
-#include "XUSGSharedConst.h"
 
 #define MAX_SHADOW_CASCADES	8
 
@@ -34,10 +83,10 @@ namespace XUSG
 
 			bool CreateTextureFromMemory(const Device* pDevice, CommandList* pCommandList, const uint8_t* ddsData,
 				size_t ddsDataSize, size_t maxsize, bool forceSRGB, ShaderResource::sptr& texture,
-				Resource::sptr& uploader, AlphaMode* alphaMode = nullptr, ResourceState state = ResourceState::COMMON);
+				Resource* pUploader, AlphaMode* alphaMode = nullptr, ResourceState state = ResourceState::COMMON);
 
 			bool CreateTextureFromFile(const Device* pDevice, CommandList* pCommandList, const wchar_t* fileName,
-				size_t maxsize, bool forceSRGB, ShaderResource::sptr& texture, Resource::sptr& uploader,
+				size_t maxsize, bool forceSRGB, ShaderResource::sptr& texture, Resource* pUploader,
 				AlphaMode* alphaMode = nullptr, ResourceState state = ResourceState::COMMON);
 
 			static size_t BitsPerPixel(Format fmt);
@@ -595,7 +644,7 @@ namespace XUSG
 			const Graphics::PipelineCache::sptr& graphicsPipelineCache,
 			const PipelineLayoutCache::sptr& pipelineLayoutCache,
 			const DescriptorTableCache::sptr& descriptorTableCache,
-			const std::wstring& skyTexture, std::vector<Resource::sptr>& uploaders,
+			const std::wstring& skyTexture, std::vector<Resource::uptr>& uploaders,
 			bool renderWater, Format rtvFormat = Format::R11G11B10_FLOAT,
 			Format dsvFormat = Format::D24_UNORM_S8_UINT) = 0;
 		virtual bool CreateResources(ShaderResource* pSceneColor, const DepthStencil* pDepth) = 0;
@@ -660,11 +709,11 @@ namespace XUSG
 			const Compute::PipelineCache::sptr& computePipelineCache,
 			const PipelineLayoutCache::sptr& pipelineLayoutCache,
 			const DescriptorTableCache::sptr& descriptorTableCache,
-			std::vector<Resource::sptr>& uploaders, Format rtvFormat, Format dsvFormat,
+			std::vector<Resource::uptr>& uploaders, Format rtvFormat, Format dsvFormat,
 			bool useIBL = false) = 0;
-		virtual bool ChangeWindowSize(CommandList* pCommandList, std::vector<Resource::sptr>& uploaders,
+		virtual bool ChangeWindowSize(CommandList* pCommandList, std::vector<Resource::uptr>& uploaders,
 			RenderTarget* pRTColor, DepthStencil* pDepth, RenderTarget* pRTMasks) = 0;
-		virtual bool CreateResources(CommandList* pCommandList, std::vector<Resource::sptr>& uploaders) = 0;
+		virtual bool CreateResources(CommandList* pCommandList, std::vector<Resource::uptr>& uploaders) = 0;
 		virtual void Update(uint8_t frameIndex, double time, float timeStep) = 0;
 		virtual void Update(uint8_t frameIndex, double time, float timeStep,
 			DirectX::CXMMATRIX view, DirectX::CXMMATRIX proj,
@@ -745,4 +794,59 @@ namespace XUSG
 		static uptr MakeUnique(const Device::sptr& device);
 		static sptr MakeShared(const Device::sptr& device);
 	};
+
+	//--------------------------------------------------------------------------------------
+	// Intrinsic shader Ids
+	//--------------------------------------------------------------------------------------
+
+	// Vertex shaders
+	enum VertexShader : uint8_t
+	{
+		VS_SCREEN_QUAD,
+
+		VS_BASE_PASS,
+		VS_BASE_PASS_STATIC,
+		VS_DEPTH,
+		VS_DEPTH_STATIC,
+		VS_SHADOW,
+		VS_SHADOW_STATIC,
+		VS_SKINNING,
+
+		VS_WATER
+	};
+
+	// Pixel shaders
+	enum PixelShader : uint8_t
+	{
+		PS_DEFERRED_SHADE,
+		PS_AMBIENT_OCCLUSION,
+
+		PS_BASE_PASS,
+		PS_BASE_PASS_STATIC,
+		PS_DEPTH,
+		PS_ALPHA_TEST,
+		PS_ALPHA_TEST_STATIC,
+
+		PS_SKYDOME,
+		PS_SS_REFLECT,
+		PS_WATER,
+		PS_RESAMPLE,
+
+		PS_POST_PROC,
+		PS_TONE_MAP,
+		PS_TEMPORAL_AA,
+		PS_FXAA,
+
+		PS_NULL_INDEX
+	};
+
+	// Compute shaders
+	enum ComputeShader : uint8_t
+	{
+		CS_SKINNING,
+		CS_RESAMPLE,
+		CS_LUM_ADAPT
+	};
 }
+
+#endif
