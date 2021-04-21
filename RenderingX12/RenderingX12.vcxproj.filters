@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Media">
-      <UniqueIdentifier>{d5e634a3-cb4c-4360-9a62-de24d9095e40}</UniqueIdentifier>
-    </Filter>
     <Filter Include="XUSG">
       <UniqueIdentifier>{4fb88c07-15f5-494c-a08f-945ac19ef282}</UniqueIdentifier>
     </Filter>
@@ -33,6 +30,9 @@
     </Filter>
     <Filter Include="Import\Source Files">
       <UniqueIdentifier>{b0603418-3c19-46bf-a607-46d653b458a8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{d5e634a3-cb4c-4360-9a62-de24d9095e40}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -103,11 +103,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Bin\Media\Scene.json">
-      <Filter>Media</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="RenderingX12.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
@@ -116,5 +111,10 @@
     <Image Include="RenderingX.ico">
       <Filter>Resource Files</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Bin\Assets\Scene.json">
+      <Filter>Assets</Filter>
+    </None>
   </ItemGroup>
 </Project>

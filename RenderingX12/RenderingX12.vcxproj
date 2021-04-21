@@ -229,13 +229,13 @@ COPY /Y "$(ProjectDir)XUSG\Bin\$(Platform)\$(Configuration)\*.dll" "$(ProjectDir
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\Bin\Media\Scene.json" />
-  </ItemGroup>
-  <ItemGroup>
     <ResourceCompile Include="RenderingX12.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="RenderingX.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\Bin\Assets\Scene.json" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
