@@ -28,8 +28,9 @@ RenderingX::RenderingX(uint32_t width, uint32_t height, wstring name) :
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	AllocConsole();
 	FILE* stream;
-	freopen_s(&stream, "CONOUT$", "w+t", stdout);
 	freopen_s(&stream, "CONIN$", "r+t", stdin);
+	freopen_s(&stream, "CONOUT$", "w+t", stdout);
+	freopen_s(&stream, "CONOUT$", "w+t", stderr);
 #endif
 }
 
@@ -204,7 +205,7 @@ void RenderingX::CreateSwapchain()
 {
 	// Describe and create the swap chain.
 	m_swapChain = SwapChain::MakeUnique();
-	N_RETURN(m_swapChain->Create(m_factory.Get(), Win32Application::GetHwnd(), m_commandQueue.get(),
+	N_RETURN(m_swapChain->Create(m_factory.get(), Win32Application::GetHwnd(), m_commandQueue.get(),
 		FrameCount, m_width, m_height, FormatLDR), ThrowIfFailed(E_FAIL));
 
 	// This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut.
@@ -226,27 +227,27 @@ void RenderingX::CreateResources()
 	{
 		m_temporalColors[n] = RenderTarget::MakeUnique();
 		N_RETURN(m_temporalColors[n]->Create(m_device.get(), m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
-			1, 1, nullptr, false, (L"TemporalColor" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
+			1, 1, nullptr, false, MemoryFlag::NONE, (L"TemporalColor" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
 
 		m_metaBuffers[n] = RenderTarget::MakeUnique();
 		N_RETURN(m_metaBuffers[n]->Create(m_device.get(), m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
-			1, 1, nullptr, false, (L"MetadataBuffer" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
+			1, 1, nullptr, false, MemoryFlag::NONE, (L"MetadataBuffer" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
 	}
 
 	// Create HDR RT
 	m_sceneColor = RenderTarget::MakeShared();
 	N_RETURN(m_sceneColor->Create(m_device.get(), m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
-		1, 1, nullptr, false, L"SceneColor"), ThrowIfFailed(E_FAIL));
+		1, 1, nullptr, false, MemoryFlag::NONE, L"SceneColor"), ThrowIfFailed(E_FAIL));
 
 	// Create Mask RT
 	m_sceneMasks = RenderTarget::MakeShared();
 	N_RETURN(m_sceneMasks->Create(m_device.get(), m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
-		1, 1, nullptr, false, L"SceneMasks"), ThrowIfFailed(E_FAIL));
+		1, 1, nullptr, false, MemoryFlag::NONE, L"SceneMasks"), ThrowIfFailed(E_FAIL));
 
 	// Create a DSV
 	m_sceneDepth = DepthStencil::MakeShared();
 	N_RETURN(m_sceneDepth->Create(m_device.get(), m_width, m_height, Format::UNKNOWN, ResourceFlag::NONE,
-		1, 1, 1, 1.0f, 0, false, L"SceneDepth"), ThrowIfFailed(E_FAIL));
+		1, 1, 1, 1.0f, 0, false, MemoryFlag::NONE, L"SceneDepth"), ThrowIfFailed(E_FAIL));
 
 	// Set the 3D rendering viewport and scissor rectangle to target the entire window.
 	m_viewport = Viewport(0.0f, 0.0f, static_cast<float>(m_width), static_cast<float>(m_height));
