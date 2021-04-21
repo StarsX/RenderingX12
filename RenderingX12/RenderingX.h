@@ -87,19 +87,19 @@ private:
 	// App resources.
 	XUSG::Scene::uptr			m_scene;
 	XUSG::Postprocess::uptr		m_postprocess;
-	XUSG::RenderTarget::uptr	m_rtColor;
-	XUSG::RenderTarget::uptr	m_rtMasks;
-	XUSG::RenderTarget::uptr	m_rtTAAs[2];
-	XUSG::RenderTarget::uptr	m_rtMetas[2];
-	XUSG::DepthStencil::uptr	m_depth;
+	XUSG::RenderTarget::uptr	m_temporalColors[2];
+	XUSG::RenderTarget::uptr	m_metaBuffers[2];
+	XUSG::RenderTarget::sptr	m_sceneColor;
+	XUSG::RenderTarget::sptr	m_sceneMasks;
+	XUSG::DepthStencil::sptr	m_sceneDepth;
 	XMFLOAT4X4	m_proj;
 	XMFLOAT4X4	m_view;
 	XMFLOAT3	m_eyePt;
 
 	// Simple tone mapping
-	XUSG::PipelineLayout m_pipelineLayout;
-	XUSG::Pipeline m_pipeline;
-	XUSG::DescriptorTable m_srvTables[NUM_SRV];
+	XUSG::PipelineLayout	m_pipelineLayout;
+	XUSG::Pipeline			m_pipeline;
+	XUSG::DescriptorTable	m_srvTables[NUM_SRV];
 
 	// Synchronization objects.
 	uint8_t				m_frameParity;

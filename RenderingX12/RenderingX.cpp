@@ -18,6 +18,7 @@ RenderingX::RenderingX(uint32_t width, uint32_t height, wstring name) :
 	DXFramework(width, height, name),
 	m_frameParity(0),
 	m_frameIndex(0),
+	m_fence(nullptr),
 	m_useIBL(true),
 	m_isPaused(false),
 	m_isTracking(false),
@@ -223,29 +224,29 @@ void RenderingX::CreateResources()
 	// Create TAA RTs
 	for (auto n = 0u; n < 2; ++n)
 	{
-		m_rtTAAs[n] = RenderTarget::MakeUnique();
-		N_RETURN(m_rtTAAs[n]->Create(m_device.get(), m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
-			1, 1, nullptr, false, (L"TemporalAA_RT" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
+		m_temporalColors[n] = RenderTarget::MakeUnique();
+		N_RETURN(m_temporalColors[n]->Create(m_device.get(), m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
+			1, 1, nullptr, false, (L"TemporalColor" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
 
-		m_rtMetas[n] = RenderTarget::MakeUnique();
-		N_RETURN(m_rtMetas[n]->Create(m_device.get(), m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
-			1, 1, nullptr, false, (L"TAA_Metadata_RT" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
+		m_metaBuffers[n] = RenderTarget::MakeUnique();
+		N_RETURN(m_metaBuffers[n]->Create(m_device.get(), m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
+			1, 1, nullptr, false, (L"MetadataBuffer" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
 	}
 
 	// Create HDR RT
-	m_rtColor = RenderTarget::MakeUnique();
-	N_RETURN(m_rtColor->Create(m_device.get(), m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
-		1, 1, nullptr, false, L"Color_RT"), ThrowIfFailed(E_FAIL));
+	m_sceneColor = RenderTarget::MakeShared();
+	N_RETURN(m_sceneColor->Create(m_device.get(), m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
+		1, 1, nullptr, false, L"SceneColor"), ThrowIfFailed(E_FAIL));
 
 	// Create Mask RT
-	m_rtMasks = RenderTarget::MakeUnique();
-	N_RETURN(m_rtMasks->Create(m_device.get(), m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
-		1, 1, nullptr, false, L"Mask_RT"), ThrowIfFailed(E_FAIL));
+	m_sceneMasks = RenderTarget::MakeShared();
+	N_RETURN(m_sceneMasks->Create(m_device.get(), m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
+		1, 1, nullptr, false, L"SceneMasks"), ThrowIfFailed(E_FAIL));
 
 	// Create a DSV
-	m_depth = DepthStencil::MakeUnique();
-	N_RETURN(m_depth->Create(m_device.get(), m_width, m_height, Format::UNKNOWN, ResourceFlag::NONE,
-		1, 1, 1, 1.0f, 0, false, L"Depth"), ThrowIfFailed(E_FAIL));
+	m_sceneDepth = DepthStencil::MakeShared();
+	N_RETURN(m_sceneDepth->Create(m_device.get(), m_width, m_height, Format::UNKNOWN, ResourceFlag::NONE,
+		1, 1, 1, 1.0f, 0, false, L"SceneDepth"), ThrowIfFailed(E_FAIL));
 
 	// Set the 3D rendering viewport and scissor rectangle to target the entire window.
 	m_viewport = Viewport(0.0f, 0.0f, static_cast<float>(m_width), static_cast<float>(m_height));
@@ -260,21 +261,21 @@ void RenderingX::ResizeAssets()
 	// Scene
 	vector<Resource::uptr> uploaders;
 	N_RETURN(m_scene->ChangeWindowSize(m_commandList.get(), uploaders,
-		m_rtColor.get(), m_depth.get(), m_rtMasks.get()), ThrowIfFailed(E_FAIL));
+		m_sceneColor, m_sceneDepth, m_sceneMasks), ThrowIfFailed(E_FAIL));
 
 	// Post process
 	{
-		N_RETURN(m_postprocess->ChangeWindowSize(*m_rtColor), ThrowIfFailed(E_FAIL));
+		N_RETURN(m_postprocess->ChangeWindowSize(m_sceneColor.get()), ThrowIfFailed(E_FAIL));
 
 		// Create Descriptor tables
 		for (auto n = 0u; n < 2; ++n)
 		{
 			X_RETURN(m_srvTables[SRV_AA_INPUT + n], m_postprocess->CreateTemporalAASRVTable(
-				m_rtColor->GetSRV(), m_rtTAAs[!n]->GetSRV(), m_scene->GetGBuffer(Scene::MOTION_IDX)->GetSRV(),
-				m_rtMasks->GetSRV(), m_rtMetas[!n]->GetSRV()), ThrowIfFailed(E_FAIL));
+				m_sceneColor->GetSRV(), m_temporalColors[!n]->GetSRV(), m_scene->GetGBuffer(Scene::MOTION_IDX)->GetSRV(),
+				m_sceneMasks->GetSRV(), m_metaBuffers[!n]->GetSRV()), ThrowIfFailed(E_FAIL));
 
 			const auto srvTable = Util::DescriptorTable::MakeUnique();
-			const Descriptor srvs[] = { m_rtTAAs[n]->GetSRV(), m_depth->GetSRV() };
+			const Descriptor srvs[] = { m_temporalColors[n]->GetSRV(), m_sceneDepth->GetSRV() };
 			srvTable->SetDescriptors(0, static_cast<uint32_t>(size(srvs)), srvs, Postprocess::RESIZABLE_POOL);
 			X_RETURN(m_srvTables[SRV_ANTIALIASED + n], srvTable->GetCbvSrvUavTable(m_descriptorTableCache.get()), ThrowIfFailed(E_FAIL));
 		}
@@ -530,13 +531,13 @@ void RenderingX::PopulateCommandList()
 	m_scene->Render(pCommandList);
 
 	// Temporal AA
-	RenderTarget* ppDsts[] = { m_rtTAAs[m_frameParity].get(), m_rtMetas[m_frameParity].get() };
-	Texture2D* ppSrcs[] = { m_rtColor.get(), m_rtMasks.get(), m_rtMetas[!m_frameParity].get() };
+	RenderTarget* ppDsts[] = { m_temporalColors[m_frameParity].get(), m_metaBuffers[m_frameParity].get() };
+	Texture2D* ppSrcs[] = { m_sceneColor.get(), m_sceneMasks.get(), m_metaBuffers[!m_frameParity].get() };
 	m_postprocess->Antialias(pCommandList, ppDsts, ppSrcs, m_srvTables[SRV_AA_INPUT + m_frameParity],
 		static_cast<uint8_t>(size(ppDsts)), static_cast<uint8_t>(size(ppSrcs)));
 
 	// Postprocessing
-	m_postprocess->Render(pCommandList, *m_renderTargets[m_frameIndex], *m_rtTAAs[m_frameParity],
+	m_postprocess->Render(pCommandList, m_renderTargets[m_frameIndex].get(), m_temporalColors[m_frameParity].get(),
 		m_srvTables[SRV_ANTIALIASED + m_frameParity]);
 	m_frameParity = !m_frameParity;
 

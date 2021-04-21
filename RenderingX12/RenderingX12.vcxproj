@@ -179,6 +179,7 @@ COPY /Y "$(ProjectDir)XUSG\Bin\$(Platform)\$(Configuration)\*.dll" "$(ProjectDir
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Import\d3d12.h" />
     <ClInclude Include="Import\d3dx12.h" />
     <ClInclude Include="Import\dds.h" />
     <ClInclude Include="Import\DXFramework.h" />
