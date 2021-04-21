@@ -181,7 +181,6 @@ COPY /Y "$(ProjectDir)XUSG\Bin\$(Platform)\$(Configuration)\*.dll" "$(ProjectDir
   <ItemGroup>
     <ClInclude Include="Import\d3d12.h" />
     <ClInclude Include="Import\d3dx12.h" />
-    <ClInclude Include="Import\dds.h" />
     <ClInclude Include="Import\DXFramework.h" />
     <ClInclude Include="Import\DXFrameworkHelper.h" />
     <ClInclude Include="Import\StepTimer.h" />

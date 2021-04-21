@@ -42,9 +42,6 @@
     <ClInclude Include="Import\d3dx12.h">
       <Filter>Import\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Import\dds.h">
-      <Filter>Import\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Import\DXFramework.h">
       <Filter>Import\Header Files</Filter>
     </ClInclude>
