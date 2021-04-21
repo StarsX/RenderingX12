@@ -73,14 +73,14 @@ private:
 	XUSG::DescriptorTableCache::sptr	m_descriptorTableCache;
 
 	// Pipeline objects.
-	XUSG::Viewport				m_viewport;
-	XUSG::RectRange				m_scissorRect;
+	XUSG::Viewport	m_viewport;
+	XUSG::RectRange	m_scissorRect;
 
-	XUSG::SwapChain				m_swapChain;
-	XUSG::CommandAllocator		m_commandAllocators[FrameCount];
-	XUSG::CommandQueue			m_commandQueue;
+	XUSG::SwapChain::uptr			m_swapChain;
+	XUSG::CommandAllocator::uptr	m_commandAllocators[FrameCount];
+	XUSG::CommandQueue::uptr		m_commandQueue;
 
-	XUSG::Device				m_device;
+	XUSG::Device::sptr			m_device;
 	XUSG::RenderTarget::uptr	m_renderTargets[FrameCount];
 	XUSG::CommandList::uptr		m_commandList;
 
@@ -102,11 +102,11 @@ private:
 	XUSG::DescriptorTable m_srvTables[NUM_SRV];
 
 	// Synchronization objects.
-	uint8_t		m_frameParity;
-	uint8_t		m_frameIndex;
-	HANDLE		m_fenceEvent;
-	XUSG::Fence	m_fence;
-	uint64_t	m_fenceValues[FrameCount];
+	uint8_t				m_frameParity;
+	uint8_t				m_frameIndex;
+	HANDLE				m_fenceEvent;
+	XUSG::Fence::uptr	m_fence;
+	uint64_t			m_fenceValues[FrameCount];
 
 	// Application state
 	bool		m_useIBL;

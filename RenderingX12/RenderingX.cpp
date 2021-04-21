@@ -70,12 +70,15 @@ void RenderingX::LoadPipeline()
 
 	DXGI_ADAPTER_DESC1 dxgiAdapterDesc;
 	com_ptr<IDXGIAdapter1> dxgiAdapter = nullptr;
+	com_ptr<ID3D12Device> device;
 	auto hr = DXGI_ERROR_UNSUPPORTED;
 	for (auto i = 0u; hr == DXGI_ERROR_UNSUPPORTED; ++i)
 	{
 		dxgiAdapter = nullptr;
 		ThrowIfFailed(m_factory->EnumAdapters1(i, &dxgiAdapter));
-		hr = D3D12CreateDevice(dxgiAdapter.get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&m_device));
+
+		m_device = Device::MakeShared();
+		hr = m_device->Create(dxgiAdapter.get(), D3D_FEATURE_LEVEL_11_0);
 	}
 
 	dxgiAdapter->GetDesc1(&dxgiAdapterDesc);
@@ -84,7 +87,9 @@ void RenderingX::LoadPipeline()
 	ThrowIfFailed(hr);
 
 	// Create the command queue.
-	N_RETURN(m_device->GetCommandQueue(m_commandQueue, CommandListType::DIRECT, CommandQueueFlag::NONE), ThrowIfFailed(E_FAIL));
+	m_commandQueue = CommandQueue::MakeUnique();
+	N_RETURN(m_commandQueue->Create(m_device.get(), CommandListType::DIRECT, CommandQueueFlag::NONE,
+		0, 0, L"CommandQueue"), ThrowIfFailed(E_FAIL));
 
 	// Create the swap chain.
 	CreateSwapchain();
@@ -94,30 +99,34 @@ void RenderingX::LoadPipeline()
 
 	// Create a command allocator for each frame.
 	for (uint8_t n = 0; n < FrameCount; ++n)
-		N_RETURN(m_device->GetCommandAllocator(m_commandAllocators[n], CommandListType::DIRECT), ThrowIfFailed(E_FAIL));
+	{
+		m_commandAllocators[n] = CommandAllocator::MakeUnique();
+		N_RETURN(m_commandAllocators[n]->Create(m_device.get(), CommandListType::DIRECT,
+			(L"CommandAllocator" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
+	}
 
 	// Create descriptor table cache.
-	m_descriptorTableCache = DescriptorTableCache::MakeShared(m_device, L"DescriptorTableCache");
+	m_descriptorTableCache = DescriptorTableCache::MakeShared(m_device.get(), L"DescriptorTableCache");
 }
 
 // Load the sample assets.
 void RenderingX::LoadAssets()
 {
 	m_shaderPool = ShaderPool::MakeShared();
-	m_graphicsPipelineCache = Graphics::PipelineCache::MakeShared(m_device);
-	m_computePipelineCache = Compute::PipelineCache::MakeShared(m_device);
-	m_pipelineLayoutCache = PipelineLayoutCache::MakeShared(m_device);
+	m_graphicsPipelineCache = Graphics::PipelineCache::MakeShared(m_device.get());
+	m_computePipelineCache = Compute::PipelineCache::MakeShared(m_device.get());
+	m_pipelineLayoutCache = PipelineLayoutCache::MakeShared(m_device.get());
 
 	// Create the command list.
 	m_commandList = CommandList::MakeUnique();
 	const auto pCommandList = m_commandList.get();
-	N_RETURN(m_device->GetCommandList(*pCommandList, 0, CommandListType::DIRECT,
-		m_commandAllocators[m_frameIndex], nullptr), ThrowIfFailed(E_FAIL));
+	N_RETURN(pCommandList->Create(m_device.get(), 0, CommandListType::DIRECT,
+		m_commandAllocators[m_frameIndex].get(), nullptr), ThrowIfFailed(E_FAIL));
 
 	// Load scene asset
-	vector<Resource> uploaders;
+	vector<Resource::sptr> uploaders;
 	{
-		Blob sceneFileBlob;
+		com_ptr<ID3DBlob> sceneFileBlob;
 		D3DReadFileToBlob(m_sceneFile.c_str(), &sceneFileBlob);
 		N_RETURN(sceneFileBlob, ThrowIfFailed(E_FAIL));
 
@@ -144,11 +153,15 @@ void RenderingX::LoadAssets()
 
 	// Close the command list and execute it to begin the initial GPU setup.
 	ThrowIfFailed(pCommandList->Close());
-	m_commandQueue->SubmitCommandList(pCommandList);
+	m_commandQueue->ExecuteCommandList(pCommandList);
 
 	// Create synchronization objects and wait until assets have been uploaded to the GPU.
 	{
-		N_RETURN(m_device->GetFence(m_fence, m_fenceValues[m_frameIndex]++, FenceFlag::NONE), ThrowIfFailed(E_FAIL));
+		if (!m_fence)
+		{
+			m_fence = Fence::MakeUnique();
+			N_RETURN(m_fence->Create(m_device.get(), m_fenceValues[m_frameIndex]++, FenceFlag::NONE, L"Fence"), ThrowIfFailed(E_FAIL));
+		}
 
 		// Create an event handle to use for frame synchronization.
 		m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
@@ -189,27 +202,9 @@ void RenderingX::LoadAssets()
 void RenderingX::CreateSwapchain()
 {
 	// Describe and create the swap chain.
-	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-	swapChainDesc.BufferCount = FrameCount;
-	swapChainDesc.Width = m_width;
-	swapChainDesc.Height = m_height;
-	swapChainDesc.Format = GetDXGIFormat(FormatLDR);
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	swapChainDesc.SampleDesc.Count = 1;
-
-	com_ptr<IDXGISwapChain1> swapChain = nullptr;
-	ThrowIfFailed(m_factory->CreateSwapChainForHwnd(
-		m_commandQueue.get(),		// Swap chain needs the queue so that it can force a flush on it.
-		Win32Application::GetHwnd(),
-		&swapChainDesc,
-		nullptr,
-		nullptr,
-		&swapChain
-	));
-
-	// Store the swap chain.
-	ThrowIfFailed(swapChain->QueryInterface(IID_PPV_ARGS(&m_swapChain)));
+	m_swapChain = SwapChain::MakeUnique();
+	N_RETURN(m_swapChain->Create(m_factory.Get(), Win32Application::GetHwnd(), m_commandQueue.get(),
+		FrameCount, m_width, m_height, FormatLDR), ThrowIfFailed(E_FAIL));
 
 	// This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut.
 	ThrowIfFailed(m_factory->MakeWindowAssociation(Win32Application::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
@@ -222,34 +217,34 @@ void RenderingX::CreateResources()
 	for (uint8_t n = 0; n < FrameCount; ++n)
 	{
 		m_renderTargets[n] = RenderTarget::MakeUnique();
-		N_RETURN(m_renderTargets[n]->CreateFromSwapChain(m_device, m_swapChain, n), ThrowIfFailed(E_FAIL));
+		N_RETURN(m_renderTargets[n]->CreateFromSwapChain(m_device.get(), m_swapChain.get(), n), ThrowIfFailed(E_FAIL));
 	}
 
 	// Create TAA RTs
 	for (auto n = 0u; n < 2; ++n)
 	{
 		m_rtTAAs[n] = RenderTarget::MakeUnique();
-		N_RETURN(m_rtTAAs[n]->Create(m_device, m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
+		N_RETURN(m_rtTAAs[n]->Create(m_device.get(), m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
 			1, 1, nullptr, false, (L"TemporalAA_RT" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
 
 		m_rtMetas[n] = RenderTarget::MakeUnique();
-		N_RETURN(m_rtMetas[n]->Create(m_device, m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
+		N_RETURN(m_rtMetas[n]->Create(m_device.get(), m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
 			1, 1, nullptr, false, (L"TAA_Metadata_RT" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
 	}
 
 	// Create HDR RT
 	m_rtColor = RenderTarget::MakeUnique();
-	N_RETURN(m_rtColor->Create(m_device, m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
+	N_RETURN(m_rtColor->Create(m_device.get(), m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
 		1, 1, nullptr, false, L"Color_RT"), ThrowIfFailed(E_FAIL));
 
 	// Create Mask RT
 	m_rtMasks = RenderTarget::MakeUnique();
-	N_RETURN(m_rtMasks->Create(m_device, m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
+	N_RETURN(m_rtMasks->Create(m_device.get(), m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
 		1, 1, nullptr, false, L"Mask_RT"), ThrowIfFailed(E_FAIL));
 
 	// Create a DSV
 	m_depth = DepthStencil::MakeUnique();
-	N_RETURN(m_depth->Create(m_device, m_width, m_height, Format::UNKNOWN, ResourceFlag::NONE,
+	N_RETURN(m_depth->Create(m_device.get(), m_width, m_height, Format::UNKNOWN, ResourceFlag::NONE,
 		1, 1, 1, 1.0f, 0, false, L"Depth"), ThrowIfFailed(E_FAIL));
 
 	// Set the 3D rendering viewport and scissor rectangle to target the entire window.
@@ -259,12 +254,13 @@ void RenderingX::CreateResources()
 
 void RenderingX::ResizeAssets()
 {
-	ThrowIfFailed(m_commandAllocators[m_frameIndex]->Reset());
-	ThrowIfFailed(m_commandList->Reset(m_commandAllocators[m_frameIndex], nullptr));
+	N_RETURN(m_commandAllocators[m_frameIndex]->Reset(), ThrowIfFailed(E_FAIL));
+	N_RETURN(m_commandList->Reset(m_commandAllocators[m_frameIndex].get(), nullptr), ThrowIfFailed(E_FAIL));
 
 	// Scene
-	vector<Resource> uploaders;
-	N_RETURN(m_scene->ChangeWindowSize(m_commandList.get(), uploaders, *m_rtColor, *m_depth, *m_rtMasks), ThrowIfFailed(E_FAIL));
+	vector<Resource::sptr> uploaders;
+	N_RETURN(m_scene->ChangeWindowSize(m_commandList.get(), uploaders,
+		m_rtColor.get(), m_depth.get(), m_rtMasks.get()), ThrowIfFailed(E_FAIL));
 
 	// Post process
 	{
@@ -280,17 +276,21 @@ void RenderingX::ResizeAssets()
 			const auto srvTable = Util::DescriptorTable::MakeUnique();
 			const Descriptor srvs[] = { m_rtTAAs[n]->GetSRV(), m_depth->GetSRV() };
 			srvTable->SetDescriptors(0, static_cast<uint32_t>(size(srvs)), srvs, Postprocess::RESIZABLE_POOL);
-			X_RETURN(m_srvTables[SRV_ANTIALIASED + n], srvTable->GetCbvSrvUavTable(*m_descriptorTableCache), ThrowIfFailed(E_FAIL));
+			X_RETURN(m_srvTables[SRV_ANTIALIASED + n], srvTable->GetCbvSrvUavTable(m_descriptorTableCache.get()), ThrowIfFailed(E_FAIL));
 		}
 	}
 
 	// Close the command list and execute it to begin the initial GPU setup.
 	ThrowIfFailed(m_commandList->Close());
-	m_commandQueue->SubmitCommandList(m_commandList.get());
+	m_commandQueue->ExecuteCommandList(m_commandList.get());
 
 	// Create synchronization objects and wait until assets have been uploaded to the GPU.
 	{
-		if (!m_fence) N_RETURN(m_device->GetFence(m_fence, m_fenceValues[m_frameIndex]++, FenceFlag::NONE), ThrowIfFailed(E_FAIL));
+		if (!m_fence)
+		{
+			m_fence = Fence::MakeUnique();
+			N_RETURN(m_fence->Create(m_device.get(), m_fenceValues[m_frameIndex]++, FenceFlag::NONE, L"Fence"), ThrowIfFailed(E_FAIL));
+		}
 
 		// Create an event handle to use for frame synchronization.
 		m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
@@ -332,10 +332,10 @@ void RenderingX::OnRender()
 	PopulateCommandList();
 
 	// Execute the command list.
-	m_commandQueue->SubmitCommandList(m_commandList.get());
+	m_commandQueue->ExecuteCommandList(m_commandList.get());
 
 	// Present the frame.
-	ThrowIfFailed(m_swapChain->Present(0, 0));
+	ThrowIfFailed(m_swapChain->Present());
 
 	MoveToNextFrame();
 }
@@ -376,7 +376,7 @@ void RenderingX::OnWindowSizeChanged(int width, int height)
 	if (m_swapChain)
 	{
 		// If the swap chain already exists, resize it.
-		const auto hr = m_swapChain->ResizeBuffers(FrameCount, m_width, m_height, DXGI_FORMAT_B8G8R8A8_UNORM, 0);
+		const auto hr = m_swapChain->ResizeBuffers(FrameCount, m_width, m_height, FormatLDR);
 
 		if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
 		{
@@ -516,13 +516,13 @@ void RenderingX::PopulateCommandList()
 	// Command list allocators can only be reset when the associated 
 	// command lists have finished execution on the GPU; apps should use 
 	// fences to determine GPU execution progress.
-	ThrowIfFailed(m_commandAllocators[m_frameIndex]->Reset());
+	N_RETURN(m_commandAllocators[m_frameIndex]->Reset(), ThrowIfFailed(E_FAIL));
 
 	// However, when ExecuteCommandList() is called on a particular command 
 	// list, that command list can then be reset at any time and must be before 
 	// re-recording.
 	const auto pCommandList = m_commandList.get();
-	ThrowIfFailed(pCommandList->Reset(m_commandAllocators[m_frameIndex], nullptr));
+	N_RETURN(pCommandList->Reset(m_commandAllocators[m_frameIndex].get(), nullptr), ThrowIfFailed(E_FAIL));
 
 	// Record commands.
 	//const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
@@ -556,7 +556,7 @@ void RenderingX::WaitForGpu()
 
 	// Wait until the fence has been processed, and increment the fence value for the current frame.
 	ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex]++, m_fenceEvent));
-	WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
+	WaitForSingleObject(m_fenceEvent, INFINITE);
 }
 
 // Prepare to render the next frame.
@@ -573,7 +573,7 @@ void RenderingX::MoveToNextFrame()
 	if (m_fence->GetCompletedValue() < m_fenceValues[m_frameIndex])
 	{
 		ThrowIfFailed(m_fence->SetEventOnCompletion(m_fenceValues[m_frameIndex], m_fenceEvent));
-		WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
+		WaitForSingleObject(m_fenceEvent, INFINITE);
 	}
 
 	// Set the fence value for the next frame.
