@@ -191,10 +191,7 @@ COPY /Y "$(ProjectDir)XUSG\Bin\$(Platform)\$(Configuration)\*.dll" "$(ProjectDir
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="XUSG\Advanced\XUSGAdvanced.h" />
-    <ClInclude Include="XUSG\Advanced\XUSGShaderCommon.h" />
-    <ClInclude Include="XUSG\Advanced\XUSGSharedConst.h" />
     <ClInclude Include="XUSG\Core\XUSG.h" />
-    <ClInclude Include="XUSG\Core\XUSG_DX12.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Import\DXFramework.cpp">

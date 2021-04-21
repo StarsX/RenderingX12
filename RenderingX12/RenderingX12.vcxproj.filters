@@ -16,12 +16,6 @@
     <Filter Include="XUSG">
       <UniqueIdentifier>{4fb88c07-15f5-494c-a08f-945ac19ef282}</UniqueIdentifier>
     </Filter>
-    <Filter Include="XUSG\Advanced">
-      <UniqueIdentifier>{fa97f829-cd6a-444d-9429-14e552663727}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="XUSG\Core">
-      <UniqueIdentifier>{35f66f3e-f007-43fd-b01e-176dd640dfa4}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Import">
       <UniqueIdentifier>{dcbb8536-cac4-48e1-b02a-e5d7c4ed3262}</UniqueIdentifier>
     </Filter>
@@ -45,18 +39,6 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGAdvanced.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGShaderCommon.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Advanced\XUSGSharedConst.h">
-      <Filter>XUSG\Advanced</Filter>
-    </ClInclude>
-    <ClInclude Include="XUSG\Core\XUSG.h">
-      <Filter>XUSG\Core</Filter>
-    </ClInclude>
     <ClInclude Include="Import\d3dx12.h">
       <Filter>Import\Header Files</Filter>
     </ClInclude>
@@ -78,11 +60,14 @@
     <ClInclude Include="Import\Win32Application.h">
       <Filter>Import\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="XUSG\Core\XUSG_DX12.h">
-      <Filter>XUSG\Core</Filter>
-    </ClInclude>
     <ClInclude Include="Import\d3d12.h">
       <Filter>Import\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="XUSG\Advanced\XUSGAdvanced.h">
+      <Filter>XUSG</Filter>
+    </ClInclude>
+    <ClInclude Include="XUSG\Core\XUSG.h">
+      <Filter>XUSG</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
