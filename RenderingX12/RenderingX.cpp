@@ -79,7 +79,7 @@ void RenderingX::LoadPipeline()
 		dxgiAdapter = nullptr;
 		ThrowIfFailed(m_factory->EnumAdapters1(i, &dxgiAdapter));
 
-		m_device = Device::MakeShared(Api);
+		m_device = Device::MakeUnique(Api);
 		hr = m_device->Create(dxgiAdapter.get(), D3D_FEATURE_LEVEL_11_0);
 	}
 
@@ -138,7 +138,7 @@ void RenderingX::LoadAssets()
 		sceneReader.ReadJson(sceneString);
 
 		// Create scene
-		m_scene = Scene::MakeUnique(m_device, Api);
+		m_scene = Scene::MakeUnique(Api);
 		//m_scene->SetRenderTarget(m_rtHDR, m_depth);
 		N_RETURN(m_scene->LoadAssets(&sceneReader, pCommandList, m_shaderPool,
 			m_graphicsPipelineCache, m_computePipelineCache, m_pipelineLayoutCache,
@@ -147,8 +147,8 @@ void RenderingX::LoadAssets()
 	}
 
 	{
-		m_postprocess = Postprocess::MakeUnique(m_device, Api);
-		N_RETURN(m_postprocess->Init(m_shaderPool, m_graphicsPipelineCache,
+		m_postprocess = Postprocess::MakeUnique(Api);
+		N_RETURN(m_postprocess->Init(m_device.get(), m_shaderPool, m_graphicsPipelineCache,
 			m_computePipelineCache, m_pipelineLayoutCache, m_descriptorTableCache,
 			FormatHDR, FormatLDR), ThrowIfFailed(E_FAIL));
 	}
@@ -269,7 +269,7 @@ void RenderingX::ResizeAssets()
 
 	// Post process
 	{
-		N_RETURN(m_postprocess->ChangeWindowSize(m_sceneColor.get()), ThrowIfFailed(E_FAIL));
+		N_RETURN(m_postprocess->ChangeWindowSize(m_device.get(), m_sceneColor.get()), ThrowIfFailed(E_FAIL));
 
 		// Create Descriptor tables
 		for (auto n = 0u; n < 2; ++n)
