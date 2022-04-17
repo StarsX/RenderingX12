@@ -610,6 +610,34 @@ namespace XUSG
 	};
 
 	//--------------------------------------------------------------------------------------
+	// Spherical harmonics
+	//--------------------------------------------------------------------------------------
+	class XUSG_INTERFACE SphericalHarmonics
+	{
+	public:
+		//SphericalHarmonics();
+		virtual ~SphericalHarmonics() {}
+
+		virtual bool Init(const Device* pDevice, const ShaderPool::sptr& shaderPool,
+			const Compute::PipelineCache::sptr& computePipelineCache,
+			const PipelineLayoutCache::sptr& pipelineLayoutCache,
+			const DescriptorTableCache::sptr& descriptorTableCache,
+			uint8_t baseCSIndex, uint8_t descriptorPoolIndex) = 0;
+
+		virtual void Transform(CommandList* pCommandList, Resource* pRadiance,const DescriptorTable& srvTable) = 0;
+
+		virtual StructuredBuffer::sptr GetSHCoefficients() const = 0;
+
+		virtual const DescriptorTable& GetSHCoeffTable() const = 0;
+
+		using uptr = std::unique_ptr<SphericalHarmonics>;
+		using sptr = std::shared_ptr<SphericalHarmonics>;
+
+		static uptr MakeUnique(API api = API::DIRECTX_12);
+		static sptr MakeShared(API api = API::DIRECTX_12);
+	};
+
+	//--------------------------------------------------------------------------------------
 	// Nature objects 
 	//--------------------------------------------------------------------------------------
 	class XUSG_INTERFACE Nature
@@ -620,12 +648,14 @@ namespace XUSG
 
 		virtual bool Init(CommandList* pCommandList, const ShaderPool::sptr& shaderPool,
 			const Graphics::PipelineCache::sptr& graphicsPipelineCache,
+			const Compute::PipelineCache::sptr& computePipelineCache,
 			const PipelineLayoutCache::sptr& pipelineLayoutCache,
 			const DescriptorTableCache::sptr& descriptorTableCache,
 			const std::wstring& skyTexture, std::vector<Resource::uptr>& uploaders,
 			bool renderWater, Format rtvFormat = Format::R11G11B10_FLOAT,
 			Format dsvFormat = Format::D24_UNORM_S8_UINT) = 0;
-		virtual bool CreateResources(const Device* pDevice, const ShaderResource::sptr& sceneColor, const DepthStencil* pDepth) = 0;
+		virtual bool CreateResources(const Device* pDevice, const ShaderResource::sptr& sceneColor,
+			const DepthStencil* pDepth, bool renderWater) = 0;
 
 		virtual void Update(uint8_t frameIndex, DirectX::FXMMATRIX* pViewProj, DirectX::FXMMATRIX* pWorld = nullptr) = 0;
 		virtual void SetGlobalCBVTables(DescriptorTable cbvImmutable, DescriptorTable cbvPerFrameTable) = 0;
@@ -634,6 +664,7 @@ namespace XUSG
 			uint32_t& numBarriers, ResourceBarrier* pBarriers, bool reset = false) = 0;
 
 		virtual Descriptor GetSkySRV() const = 0;
+		virtual DescriptorTable GetSHCoeffTable(CommandList* pCommandList) = 0;
 
 		using uptr = std::unique_ptr<Nature>;
 		using sptr = std::shared_ptr<Nature>;
@@ -834,6 +865,9 @@ namespace XUSG
 	enum ComputeShader : uint8_t
 	{
 		CS_SKINNING,
+		CS_SH_CUBE_MAP,
+		CS_SH_SUM,
+		CS_SH_NORMALIZE,
 		CS_RESAMPLE,
 		CS_LUM_ADAPT
 	};
