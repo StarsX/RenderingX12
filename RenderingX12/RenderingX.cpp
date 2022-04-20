@@ -185,7 +185,7 @@ void RenderingX::LoadAssets()
 	// Projection
 	{
 		const auto aspectRatio = m_width / static_cast<float>(m_height);
-		const auto proj = XMMatrixPerspectiveFovLH(g_FOVAngleY, aspectRatio, g_zNear, g_zFar);
+		const auto proj = XMMatrixPerspectiveFovLH(XUSG_FOVAngleY, aspectRatio, XUSG_zNear, XUSG_zFar);
 		XMStoreFloat4x4(&m_proj, proj);
 	}
 
@@ -414,7 +414,7 @@ void RenderingX::OnWindowSizeChanged(int width, int height)
 	// Projection
 	{
 		const auto aspectRatio = m_width / static_cast<float>(m_height);
-		const auto proj = XMMatrixPerspectiveFovLH(g_FOVAngleY, aspectRatio, g_zNear, g_zFar);
+		const auto proj = XMMatrixPerspectiveFovLH(XUSG_FOVAngleY, aspectRatio, XUSG_zNear, XUSG_zFar);
 		XMStoreFloat4x4(&m_proj, proj);
 	}
 }

@@ -15,27 +15,27 @@
 #ifndef _XUSG_SHARED_CONST_H_
 #define _XUSG_SHARED_CONST_H_
 
-#ifndef FRAME_COUNT
-#define FRAME_COUNT	3
+#ifndef XUSG_FRAME_COUNT
+#define XUSG_FRAME_COUNT	3
 #endif
 
-#ifndef TEMPORAL_AA
-#define TEMPORAL_AA	1
+#ifndef XUSG_TEMPORAL_AA
+#define XUSG_TEMPORAL_AA	1
 #endif
 
-#ifndef TEMPORAL
-#define TEMPORAL	TEMPORAL_AA
+#ifndef XUSG_TEMPORAL
+#define XUSG_TEMPORAL		XUSG_TEMPORAL_AA
 #endif
 
-#ifndef NUM_CASCADE
-#define NUM_CASCADE	3
+#ifndef XUSG_NUM_CASCADE
+#define XUSG_NUM_CASCADE	3
 #endif
 
-#define PIDIV4		0.785398163f
+#define XUSG_PIDIV4			0.785398163f
 
-static const float	g_FOVAngleY = PIDIV4;
-static const float	g_zNear = 1.0f;
-static const float	g_zFar = 1000.0f;
+static const float	XUSG_FOVAngleY = XUSG_PIDIV4;
+static const float	XUSG_zNear = 1.0f;
+static const float	XUSG_zFar = 1000.0f;
 
 #endif
 
@@ -92,7 +92,7 @@ namespace XUSG
 		NUM_SUBSET_TYPE = 2
 	};
 
-	DEFINE_ENUM_FLAG_OPERATORS(SubsetFlags);
+	XUSG_DEF_ENUM_FLAG_OPERATORS(SubsetFlags);
 
 	struct TextureCacheEntry
 	{
@@ -363,7 +363,7 @@ namespace XUSG
 		{
 			MATRICES,
 			PER_FRAME,
-#if TEMPORAL_AA
+#if XUSG_TEMPORAL_AA
 			TEMPORAL_BIAS,
 #endif
 			VARIABLE_SLOT
@@ -379,7 +379,7 @@ namespace XUSG
 		enum CBVTableIndex : uint8_t
 		{
 			CBV_MATRICES,
-#if TEMPORAL_AA
+#if XUSG_TEMPORAL_AA
 			CBV_LOCAL_TEMPORAL_BIAS,
 #endif
 
@@ -397,7 +397,7 @@ namespace XUSG
 			bool twoSidedAll) = 0;
 		virtual void Update(uint8_t frameIndex) = 0;
 		virtual void SetMatrices(DirectX::CXMMATRIX world, bool isTemporal = true) = 0;
-#if TEMPORAL_AA
+#if XUSG_TEMPORAL_AA
 		virtual void SetTemporalBias(const DirectX::XMFLOAT2& temporalBias) = 0;
 #endif
 		virtual void SetPipelineLayout(const CommandList* pCommandList, PipelineLayoutIndex layout) = 0;
@@ -424,7 +424,7 @@ namespace XUSG
 		static sptr MakeShared(const wchar_t* name, API api);
 
 	protected:
-		static const uint8_t FrameCount = FRAME_COUNT;
+		static const uint8_t FrameCount = XUSG_FRAME_COUNT;
 	};
 
 	//--------------------------------------------------------------------------------------
@@ -440,7 +440,7 @@ namespace XUSG
 			ALPHA_REF,
 			SHADOW_MAP,
 			IMMUTABLE = ALPHA_REF,
-#if TEMPORAL
+#if XUSG_TEMPORAL
 			HISTORY = ALPHA_REF
 #endif
 		};
@@ -587,7 +587,7 @@ namespace XUSG
 		virtual bool Init(const Device* pDevice, float sceneMapSize, float shadowMapSize,
 			const DescriptorTableCache::sptr& descriptorTableCache,
 			Format format = Format::D24_UNORM_S8_UINT,
-			uint8_t numCasLevels = NUM_CASCADE) = 0;
+			uint8_t numCasLevels = XUSG_NUM_CASCADE) = 0;
 		virtual bool CreateDescriptorTables() = 0;
 		// This runs per frame. This data could be cached when the cameras do not move.
 		virtual void Update(uint8_t frameIndex, const DirectX::XMFLOAT4X4& view,
@@ -597,7 +597,7 @@ namespace XUSG
 		virtual void GetShadowMatrices(DirectX::XMMATRIX* pShadows) const = 0;
 
 		virtual const DepthStencil::uptr& GetShadowMap() const = 0;
-		virtual const DescriptorTable& GetShadowTable() const = 0;
+		virtual const DescriptorTable& GetShadowDescriptorTable() const = 0;
 		virtual const Framebuffer& GetFramebuffer() const = 0;
 		virtual DirectX::FXMMATRIX GetShadowMatrix(uint8_t i) const = 0;
 		virtual DirectX::FXMMATRIX GetShadowViewMatrix() const = 0;
@@ -624,11 +624,12 @@ namespace XUSG
 			const DescriptorTableCache::sptr& descriptorTableCache,
 			uint8_t baseCSIndex, uint8_t descriptorPoolIndex) = 0;
 
-		virtual void Transform(CommandList* pCommandList, Resource* pRadiance,const DescriptorTable& srvTable) = 0;
+		virtual void Transform(CommandList* pCommandList, Resource* pRadiance,
+			const DescriptorTable& srvTable, uint8_t order = 3) = 0;
 
 		virtual StructuredBuffer::sptr GetSHCoefficients() const = 0;
 
-		virtual const DescriptorTable& GetSHCoeffTable() const = 0;
+		virtual const DescriptorTable& GetSHCoeffSRVTable() const = 0;
 
 		using uptr = std::unique_ptr<SphericalHarmonics>;
 		using sptr = std::shared_ptr<SphericalHarmonics>;
@@ -664,7 +665,7 @@ namespace XUSG
 			uint32_t& numBarriers, ResourceBarrier* pBarriers, bool reset = false) = 0;
 
 		virtual Descriptor GetSkySRV() const = 0;
-		virtual DescriptorTable GetSHCoeffTable(CommandList* pCommandList) = 0;
+		virtual DescriptorTable GetSHCoeffSRVTable(CommandList* pCommandList) = 0;
 
 		using uptr = std::unique_ptr<Nature>;
 		using sptr = std::shared_ptr<Nature>;
@@ -684,7 +685,7 @@ namespace XUSG
 			ALBEDO_IDX,
 			NORMAL_IDX,
 			RGHMTL_IDX,
-#if TEMPORAL
+#if XUSG_TEMPORAL
 			MOTION_IDX,
 #endif
 			AO_IDX,
@@ -698,12 +699,12 @@ namespace XUSG
 		{
 			CBV_IMMUTABLE,
 			CBV_PER_FRAME_VS,
-			CBV_PER_FRAME_PS = CBV_PER_FRAME_VS + FRAME_COUNT,	// Window size dependent
-#if TEMPORAL_AA
-			CBV_TEMPORAL_BIAS0 = CBV_PER_FRAME_PS + FRAME_COUNT,
+			CBV_PER_FRAME_PS = CBV_PER_FRAME_VS + XUSG_FRAME_COUNT,	// Window size dependent
+#if XUSG_TEMPORAL_AA
+			CBV_TEMPORAL_BIAS0 = CBV_PER_FRAME_PS + XUSG_FRAME_COUNT,
 			CBV_TEMPORAL_BIAS,
 
-			NUM_CBV_TABLE = CBV_TEMPORAL_BIAS + FRAME_COUNT
+			NUM_CBV_TABLE = CBV_TEMPORAL_BIAS + XUSG_FRAME_COUNT
 #else
 			NUM_CBV_TABLE = CBV_PER_FRAME_PS + FrameCount
 #endif
