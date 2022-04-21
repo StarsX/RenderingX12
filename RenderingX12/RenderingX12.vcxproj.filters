@@ -66,6 +66,12 @@
     <ClInclude Include="XUSG\Core\XUSG.h">
       <Filter>XUSG</Filter>
     </ClInclude>
+    <ClInclude Include="Import\d3dcommon.h">
+      <Filter>Import\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Import\dxgiformat.h">
+      <Filter>Import\Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp">
