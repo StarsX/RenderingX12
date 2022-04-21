@@ -473,7 +473,7 @@ namespace XUSG
 		virtual void Update(uint8_t frameIndex, double time, DirectX::FXMMATRIX* pWorld, bool isTemporal = true) = 0;
 		virtual void SetMatrices(DirectX::FXMMATRIX* pWorld = nullptr, bool isTemporal = true) = 0;
 		virtual void SetSkinningPipeline(const CommandList* pCommandList) = 0;
-		virtual void Skinning(const CommandList* pCommandList, uint32_t& numBarriers,
+		virtual void Skinning(CommandList* pCommandList, uint32_t& numBarriers,
 			ResourceBarrier* pBarriers, bool reset = false) = 0;
 		virtual void RenderTransformed(const CommandList* pCommandList, PipelineLayoutIndex layout,
 			SubsetFlags subsetFlags = SUBSET_FULL, const DescriptorTable* pCbvPerFrameTable = nullptr,
