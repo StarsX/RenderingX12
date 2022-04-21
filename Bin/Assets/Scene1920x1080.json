@@ -14,7 +14,7 @@
   ],
 
   "AmbientColor": [ 0.6, 0.8, 1.0 ],
-  "AmbientIntensity": 1.6,
+  "AmbientIntensity": 1.0,
 
   // Characters
   "SkinnedMeshes": [

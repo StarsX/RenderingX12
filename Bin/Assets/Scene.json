@@ -13,8 +13,9 @@
     }
   ],
 
+  // Zero ambient intensity: the ambient fully depends on the light probe
   "AmbientColor": [ 0.6, 0.8, 1.0 ],
-  "AmbientIntensity": 2.0,
+  "AmbientIntensity": 0.0,
 
   // Characters
   "SkinnedMeshes": [
