@@ -344,17 +344,15 @@ namespace XUSG
 		enum PipelineIndex : uint8_t
 		{
 			OPAQUE_FRONT,
-			OPAQUE_FRONT_EQUAL,
 			OPAQUE_TWO_SIDED,
-			OPAQUE_TWO_SIDED_EQUAL,
 			ALPHA_TWO_SIDED,
+			ALPHA_TEST_TWO_SIDED,
 			DEPTH_FRONT,
 			DEPTH_TWO_SIDED,
 			DEPTH_ALPHA_TWO_SIDED,
 			SHADOW_FRONT,
 			SHADOW_TWO_SIDED,
 			SHADOW_ALPHA_TWO_SIDED,
-			//REFLECTED,
 
 			NUM_PIPELINE
 		};
@@ -463,8 +461,9 @@ namespace XUSG
 			const DescriptorTableCache::sptr& descriptorTableCache,
 			const std::shared_ptr<std::vector<SDKMesh>>& linkedMeshes = nullptr,
 			const std::shared_ptr<std::vector<MeshLink>>& meshLinks = nullptr,
-			bool twoSidedAll = false, const Format* rtvFormats = nullptr, uint32_t numRTVs = 0,
-			Format dsvFormat = Format::UNKNOWN, Format shadowFormat = Format::UNKNOWN) = 0;
+			const Format* rtvFormats = nullptr, uint32_t numRTVs = 0,
+			Format dsvFormat = Format::UNKNOWN, Format shadowFormat = Format::UNKNOWN,
+			bool twoSidedAll = false, bool useZEqual = true) = 0;
 		virtual void InitPosition(const DirectX::XMFLOAT4& posRot) = 0;
 		virtual void Update(uint8_t frameIndex, double time) = 0;
 		virtual void Update(uint8_t frameIndex, double time, DirectX::FXMMATRIX* pWorld, bool isTemporal = true) = 0;
@@ -515,9 +514,10 @@ namespace XUSG
 			const Graphics::PipelineCache::sptr& pipelineCache,
 			const PipelineLayoutCache::sptr& pipelineLayoutCache,
 			const DescriptorTableCache::sptr& descriptorTableCache,
-			std::vector<Resource::uptr>& uploaders, bool twoSidedAll = false,
+			std::vector<Resource::uptr>& uploaders,
 			const Format* rtvFormats = nullptr, uint32_t numRTVs = 0,
-			Format dsvFormat = Format::UNKNOWN, Format shadowFormat = Format::UNKNOWN) = 0;
+			Format dsvFormat = Format::UNKNOWN, Format shadowFormat = Format::UNKNOWN,
+			bool twoSidedAll = false, bool useZEqual = true) = 0;
 		virtual void Update(uint8_t frameIndex, DirectX::FXMMATRIX* pWorld = nullptr, bool isTemporal = true) = 0;
 		virtual void Render(const CommandList* pCommandList, uint32_t mesh, PipelineLayoutIndex layout,
 			SubsetFlags subsetFlags = SUBSET_FULL, const DescriptorTable* pCbvPerFrameTable = nullptr,
@@ -845,6 +845,7 @@ namespace XUSG
 
 		PS_BASE_PASS,
 		PS_DEPTH,
+		PS_ALPHA_TEST,
 
 		PS_SKYDOME,
 		PS_SS_REFLECT,
