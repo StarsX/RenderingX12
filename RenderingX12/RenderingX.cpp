@@ -10,18 +10,22 @@
 //*********************************************************
 
 #include "RenderingX.h"
+#include "stb_image_write.h"
 
 using namespace std;
 using namespace XUSG;
 
 RenderingX::RenderingX(uint32_t width, uint32_t height, wstring name) :
 	DXFramework(width, height, name),
+	m_readBuffer(nullptr),
 	m_frameParity(0),
 	m_frameIndex(0),
 	m_fence(nullptr),
 	m_useIBL(true),
+	m_showFPS(true),
 	m_isPaused(false),
 	m_isTracking(false),
+	m_screenShot(0),
 	m_sceneFile(L"Assets/Scene.json")
 {
 #if defined (_DEBUG)
@@ -428,6 +432,12 @@ void RenderingX::OnKeyUp(uint8_t key)
 	case VK_SPACE:
 		m_isPaused = !m_isPaused;
 		break;
+	case VK_F1:
+		m_showFPS = !m_showFPS;
+		break;
+	case VK_F11:
+		m_screenShot = 1;
+		break;
 	}
 }
 
@@ -536,7 +546,8 @@ void RenderingX::PopulateCommandList()
 
 	// Render scene
 	//const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-	//pCommandList->ClearRenderTargetView(m_renderTargets[m_frameIndex]->GetRTV(), clearColor);
+	const auto pRenderTarget = m_renderTargets[m_frameIndex].get();
+	//pCommandList->ClearRenderTargetView(pRenderTarget->GetRTV(), clearColor);
 	m_scene->Render(pCommandList);
 
 	// Temporal AA
@@ -546,14 +557,22 @@ void RenderingX::PopulateCommandList()
 		static_cast<uint8_t>(size(ppDsts)), static_cast<uint8_t>(size(ppSrcs)));
 
 	// Postprocessing
-	m_postprocess->Render(pCommandList, m_renderTargets[m_frameIndex].get(), m_temporalColors[m_frameParity].get(),
+	m_postprocess->Render(pCommandList, pRenderTarget, m_temporalColors[m_frameParity].get(),
 		m_srvTables[SRV_ANTIALIASED + m_frameParity]);
 	m_frameParity = !m_frameParity;
 
 	// Indicate that the back buffer will now be used to present.
 	ResourceBarrier barrier;
-	const auto numBarriers = m_renderTargets[m_frameIndex]->SetBarrier(&barrier, ResourceState::PRESENT);
+	const auto numBarriers = pRenderTarget->SetBarrier(&barrier, ResourceState::PRESENT);
 	pCommandList->Barrier(numBarriers, &barrier);
+
+	// Screen-shot helper
+	if (m_screenShot == 1)
+	{
+		if (!m_readBuffer) m_readBuffer = Buffer::MakeUnique();
+		pRenderTarget->ReadBack(pCommandList, m_readBuffer.get());
+		m_screenShot = 2;
+	}
 
 	XUSG_N_RETURN(pCommandList->Close(), ThrowIfFailed(E_FAIL));
 }
@@ -588,6 +607,37 @@ void RenderingX::MoveToNextFrame()
 
 	// Set the fence value for the next frame.
 	m_fenceValues[m_frameIndex] = currentFenceValue + 1;
+
+	// Screen-shot helper
+	if (m_screenShot)
+	{
+		if (m_screenShot > FrameCount)
+		{
+			char timeStr[15];
+			tm dateTime;
+			const auto now = time(nullptr);
+			if (!localtime_s(&dateTime, &now) && strftime(timeStr, sizeof(timeStr), "%Y%m%d%H%M%S", &dateTime))
+				SaveImage((string("RenderingX_") + timeStr + ".png").c_str(), m_readBuffer.get(), m_width, m_height);
+			m_screenShot = 0;
+		}
+		else ++m_screenShot;
+	}
+}
+
+void RenderingX::SaveImage(char const* fileName, Buffer* imageBuffer, uint32_t w, uint32_t h, uint8_t comp)
+{
+	assert(comp == 3 || comp == 4);
+	const auto pData = static_cast<uint8_t*>(imageBuffer->Map());
+
+	//stbi_write_png_compression_level = 1024;
+	vector<uint8_t> imageData(comp * w * h);
+	for (auto i = 0u; i < w * h; ++i)
+		for (uint8_t j = 0; j < comp; ++j)
+			imageData[comp * i + j] = pData[4 * i + j];
+
+	stbi_write_png(fileName, w, h, comp, imageData.data(), 0);
+
+	m_readBuffer->Unmap();
 }
 
 double RenderingX::CalculateFrameStats(float* pTimeStep)
@@ -609,7 +659,12 @@ double RenderingX::CalculateFrameStats(float* pTimeStep)
 		elapsedTime = totalTime;
 
 		wstringstream windowText;
-		windowText << setprecision(2) << fixed << L"    fps: " << fps;
+		windowText << L"    [F1] ";
+		if (m_showFPS) windowText << setprecision(2) << fixed << L"fps: " << fps;
+		else windowText << L"show fps";
+
+		windowText << L"    [F11] screen shot";
+		
 		SetCustomWindowText(windowText.str().c_str());
 	}
 

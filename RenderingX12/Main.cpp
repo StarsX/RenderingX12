@@ -14,7 +14,7 @@
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
-	RenderingX renderingX(1280, 800, L"DirectX 12 Scene Rendering");
+	RenderingX renderingX(1280, 800, L"XUSG Scene Rendering");
 
 	return Win32Application::Run(&renderingX, hInstance, nCmdShow);
 }

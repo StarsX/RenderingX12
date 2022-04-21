@@ -102,6 +102,9 @@ private:
 	XUSG::Pipeline			m_pipeline;
 	XUSG::DescriptorTable	m_srvTables[NUM_SRV];
 
+	// Screen-shot helper
+	XUSG::Buffer::uptr		m_readBuffer;
+
 	// Synchronization objects.
 	uint8_t				m_frameParity;
 	uint8_t				m_frameIndex;
@@ -111,12 +114,16 @@ private:
 
 	// Application state
 	bool		m_useIBL;
+	bool		m_showFPS;
 	bool		m_isPaused;
 	StepTimer	m_timer;
 
 	// User camera interactions
 	bool		m_isTracking;
 	XMFLOAT2	m_mousePt;
+
+	// Screen-shot state
+	uint8_t		m_screenShot;
 
 	std::wstring m_sceneFile;
 
@@ -128,9 +135,10 @@ private:
 	void PopulateCommandList();
 	void WaitForGpu();
 	void MoveToNextFrame();
+	void SaveImage(char const* fileName, XUSG::Buffer* imageBuffer, uint32_t w, uint32_t h, uint8_t comp = 3);
 	double CalculateFrameStats(float* fTimeStep = nullptr);
 
 	static const XUSG::Format FormatHDR = XUSG::Format::R11G11B10_FLOAT;
-	static const XUSG::Format FormatLDR = XUSG::Format::B8G8R8A8_UNORM;
+	static const XUSG::Format FormatLDR = XUSG::Format::R8G8B8A8_UNORM;
 	static const XUSG::Format FormatDepth = XUSG::Format::D24_UNORM_S8_UINT;
 };

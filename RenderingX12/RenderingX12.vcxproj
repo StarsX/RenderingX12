@@ -80,6 +80,7 @@
       <ConformanceMode>true</ConformanceMode>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <PreprocessorDefinitions>STB_IMAGE_WRITE_IMPLEMENTATION;__STDC_LIB_EXT1__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dxguid.lib;XUSG.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -105,6 +106,7 @@ COPY /Y "$(ProjectDir)XUSG\Bin\$(Configuration)\*.dll" "$(ProjectDir)..\Bin\"
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>STB_IMAGE_WRITE_IMPLEMENTATION;__STDC_LIB_EXT1__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalDependencies>d3d12.lib;dxgi.lib;d3dcompiler.lib;dxguid.lib;XUSG.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -132,6 +134,7 @@ COPY /Y "$(ProjectDir)XUSG\Bin\$(Platform)\$(Configuration)\*.dll" "$(ProjectDir
       <ConformanceMode>true</ConformanceMode>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
+      <PreprocessorDefinitions>STB_IMAGE_WRITE_IMPLEMENTATION;__STDC_LIB_EXT1__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -161,6 +164,7 @@ COPY /Y "$(ProjectDir)XUSG\Bin\$(Configuration)\*.dll" "$(ProjectDir)..\Bin\"
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions2</EnableEnhancedInstructionSet>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ConformanceMode>true</ConformanceMode>
+      <PreprocessorDefinitions>STB_IMAGE_WRITE_IMPLEMENTATION;__STDC_LIB_EXT1__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -181,11 +185,11 @@ COPY /Y "$(ProjectDir)XUSG\Bin\$(Platform)\$(Configuration)\*.dll" "$(ProjectDir
   <ItemGroup>
     <ClInclude Include="Import\d3d12.h" />
     <ClInclude Include="Import\d3dcommon.h" />
-    <ClInclude Include="Import\d3dx12.h" />
     <ClInclude Include="Import\DXFramework.h" />
     <ClInclude Include="Import\DXFrameworkHelper.h" />
     <ClInclude Include="Import\dxgicommon.h" />
     <ClInclude Include="Import\dxgiformat.h" />
+    <ClInclude Include="Import\stb_image_write.h" />
     <ClInclude Include="Import\StepTimer.h" />
     <ClInclude Include="Import\tinyjson.hpp" />
     <ClInclude Include="Import\Win32Application.h" />
