@@ -65,7 +65,7 @@ private:
 		NUM_SRV = SRV_ANTIALIASED + 2
 	};
 
-	XUSG::com_ptr<IDXGIFactory4> m_factory;
+	XUSG::com_ptr<IDXGIFactory5> m_factory;
 
 	XUSG::ShaderPool::sptr				m_shaderPool;
 	XUSG::Graphics::PipelineCache::sptr	m_graphicsPipelineCache;

@@ -206,7 +206,7 @@ void RenderingX::CreateSwapchain()
 	// Describe and create the swap chain.
 	m_swapChain = SwapChain::MakeUnique(Api);
 	XUSG_N_RETURN(m_swapChain->Create(m_factory.get(), Win32Application::GetHwnd(), m_commandQueue.get(),
-		FrameCount, m_width, m_height, FormatLDR), ThrowIfFailed(E_FAIL));
+		FrameCount, m_width, m_height, FormatLDR, SwapChainFlag::ALLOW_TEARING), ThrowIfFailed(E_FAIL));
 
 	// This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut.
 	ThrowIfFailed(m_factory->MakeWindowAssociation(Win32Application::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
@@ -340,7 +340,7 @@ void RenderingX::OnRender()
 	m_commandQueue->ExecuteCommandList(m_commandList.get());
 
 	// Present the frame.
-	XUSG_N_RETURN(m_swapChain->Present(), ThrowIfFailed(E_FAIL));
+	XUSG_N_RETURN(m_swapChain->Present(0, PresentFlag::ALLOW_TEARING), ThrowIfFailed(E_FAIL));
 
 	MoveToNextFrame();
 }
@@ -381,7 +381,8 @@ void RenderingX::OnWindowSizeChanged(int width, int height)
 	if (m_swapChain)
 	{
 		// If the swap chain already exists, resize it.
-		const auto hr = m_swapChain->ResizeBuffers(FrameCount, m_width, m_height, FormatLDR);
+		const auto hr = m_swapChain->ResizeBuffers(FrameCount, m_width,
+			m_height, FormatLDR, SwapChainFlag::ALLOW_TEARING);
 
 		if (hr == DXGI_ERROR_DEVICE_REMOVED || hr == DXGI_ERROR_DEVICE_RESET)
 		{
