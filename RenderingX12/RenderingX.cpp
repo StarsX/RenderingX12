@@ -494,23 +494,21 @@ void RenderingX::ParseCommandLineArgs(wchar_t* argv[], int argc)
 {
 	DXFramework::ParseCommandLineArgs(argv, argc);
 
-	auto specifyWindowSize = 0;
-
 	for (auto i = 1; i < argc; ++i)
 	{
 		if ((wcsncmp(argv[i], L"-scene", wcslen(argv[i])) == 0 ||
 			wcsncmp(argv[i], L"/scene", wcslen(argv[i])) == 0) && i + 1 < argc)
-			m_sceneFile = argv[i + 1];
+			m_sceneFile = argv[++i];
 		else if ((wcsncmp(argv[i], L"-width", wcslen(argv[i])) == 0 ||
 			wcsncmp(argv[i], L"/width", wcslen(argv[i])) == 0 ||
 			wcsncmp(argv[i], L"-w", wcslen(argv[i])) == 0 ||
 			wcsncmp(argv[i], L"/w", wcslen(argv[i])) == 0) && i + 1 < argc)
-			m_width = wcstoul(argv[i + 1], nullptr, 0);
+			m_width = stoul(argv[++i]);
 		else if ((wcsncmp(argv[i], L"-height", wcslen(argv[i])) == 0 ||
 			wcsncmp(argv[i], L"/height", wcslen(argv[i])) == 0 ||
 			wcsncmp(argv[i], L"-h", wcslen(argv[i])) == 0 ||
 			wcsncmp(argv[i], L"/h", wcslen(argv[i])) == 0) && i + 1 < argc)
-			m_height = wcstoul(argv[i + 1], nullptr, 0);
+			m_height = stoul(argv[++i]);
 		else if (wcsncmp(argv[i], L"-noIBL", wcslen(argv[i])) == 0 ||
 			wcsncmp(argv[i], L"/noIBL", wcslen(argv[i])) == 0)
 			m_useIBL = false;
