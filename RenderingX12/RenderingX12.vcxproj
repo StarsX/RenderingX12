@@ -184,6 +184,7 @@ COPY /Y "$(ProjectDir)XUSG\Bin\$(Platform)\$(Configuration)\*.dll" "$(ProjectDir
     <ClInclude Include="Import\d3dx12.h" />
     <ClInclude Include="Import\DXFramework.h" />
     <ClInclude Include="Import\DXFrameworkHelper.h" />
+    <ClInclude Include="Import\dxgicommon.h" />
     <ClInclude Include="Import\dxgiformat.h" />
     <ClInclude Include="Import\StepTimer.h" />
     <ClInclude Include="Import\tinyjson.hpp" />
