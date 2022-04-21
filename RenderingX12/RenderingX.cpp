@@ -132,7 +132,7 @@ void RenderingX::LoadAssets()
 		D3DReadFileToBlob(m_sceneFile.c_str(), &sceneFileBlob);
 		XUSG_N_RETURN(sceneFileBlob, ThrowIfFailed(E_FAIL));
 
-		const string sceneString = reinterpret_cast<char*>(sceneFileBlob->GetBufferPointer());
+		const string sceneString = static_cast<char*>(sceneFileBlob->GetBufferPointer());
 
 		tiny::TinyJson sceneReader;
 		sceneReader.ReadJson(sceneString);
