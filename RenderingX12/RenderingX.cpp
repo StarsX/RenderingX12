@@ -280,7 +280,7 @@ void RenderingX::ResizeAssets()
 
 			const auto srvTable = Util::DescriptorTable::MakeUnique(Api);
 			const Descriptor srvs[] = { m_temporalColors[n]->GetSRV(), m_sceneDepth->GetSRV() };
-			srvTable->SetDescriptors(0, static_cast<uint32_t>(size(srvs)), srvs, Postprocess::RESIZABLE_POOL);
+			srvTable->SetDescriptors(0, static_cast<uint32_t>(size(srvs)), srvs);
 			XUSG_X_RETURN(m_srvTables[SRV_ANTIALIASED + n], srvTable->GetCbvSrvUavTable(m_descriptorTableCache.get()), ThrowIfFailed(E_FAIL));
 		}
 	}
@@ -370,8 +370,8 @@ void RenderingX::OnWindowSizeChanged(int width, int height)
 		m_renderTargets[n].reset();
 		m_fenceValues[n] = m_fenceValues[m_frameIndex];
 	}
-	m_descriptorTableCache->ResetDescriptorPool(CBV_SRV_UAV_POOL, Postprocess::RESIZABLE_POOL);
-	m_descriptorTableCache->ResetDescriptorPool(RTV_POOL, Postprocess::RESIZABLE_POOL);
+	m_descriptorTableCache->ResetDescriptorPool(CBV_SRV_UAV_POOL);
+	m_descriptorTableCache->ResetDescriptorPool(RTV_POOL);
 
 	// Determine the render target size in pixels.
 	m_width = (max)(width, 1);
@@ -532,6 +532,11 @@ void RenderingX::PopulateCommandList()
 	XUSG_N_RETURN(pCommandList->Reset(pCommandAllocator, nullptr), ThrowIfFailed(E_FAIL));
 
 	// Record commands.
+	// Set Descriptor pool
+	const auto descriptorPool = m_descriptorTableCache->GetDescriptorPool(CBV_SRV_UAV_POOL);
+	pCommandList->SetDescriptorPools(1, &descriptorPool);
+
+	// Render scene
 	//const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 	//pCommandList->ClearRenderTargetView(m_renderTargets[m_frameIndex]->GetRTV(), clearColor);
 	m_scene->Render(pCommandList);
