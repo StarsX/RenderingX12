@@ -67,11 +67,11 @@ private:
 
 	XUSG::com_ptr<IDXGIFactory5> m_factory;
 
-	XUSG::ShaderPool::sptr				m_shaderPool;
-	XUSG::Graphics::PipelineCache::sptr	m_graphicsPipelineCache;
-	XUSG::Compute::PipelineCache::sptr	m_computePipelineCache;
-	XUSG::PipelineLayoutCache::sptr		m_pipelineLayoutCache;
-	XUSG::DescriptorTableCache::sptr	m_descriptorTableCache;
+	XUSG::ShaderLib::sptr				m_shaderLib;
+	XUSG::Graphics::PipelineLib::sptr	m_graphicsPipelineLib;
+	XUSG::Compute::PipelineLib::sptr	m_computePipelineLib;
+	XUSG::PipelineLayoutLib::sptr		m_pipelineLayoutLib;
+	XUSG::DescriptorTableLib::sptr		m_descriptorTableLib;
 
 	// Pipeline objects.
 	XUSG::Viewport	m_viewport;

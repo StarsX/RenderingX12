@@ -107,17 +107,17 @@ void RenderingX::LoadPipeline()
 			(L"CommandAllocator" + to_wstring(n)).c_str()), ThrowIfFailed(E_FAIL));
 	}
 
-	// Create descriptor table cache.
-	m_descriptorTableCache = DescriptorTableCache::MakeShared(m_device.get(), L"DescriptorTableCache", Api);
+	// Create descriptor-table lib.
+	m_descriptorTableLib = DescriptorTableLib::MakeShared(m_device.get(), L"DescriptorTableLib", Api);
 }
 
 // Load the sample assets.
 void RenderingX::LoadAssets()
 {
-	m_shaderPool = ShaderPool::MakeShared(Api);
-	m_graphicsPipelineCache = Graphics::PipelineCache::MakeShared(m_device.get(), Api);
-	m_computePipelineCache = Compute::PipelineCache::MakeShared(m_device.get(), Api);
-	m_pipelineLayoutCache = PipelineLayoutCache::MakeShared(m_device.get(), Api);
+	m_shaderLib = ShaderLib::MakeShared(Api);
+	m_graphicsPipelineLib = Graphics::PipelineLib::MakeShared(m_device.get(), Api);
+	m_computePipelineLib = Compute::PipelineLib::MakeShared(m_device.get(), Api);
+	m_pipelineLayoutLib = PipelineLayoutLib::MakeShared(m_device.get(), Api);
 
 	// Create the command list.
 	m_commandList = CommandList::MakeUnique(Api);
@@ -140,16 +140,16 @@ void RenderingX::LoadAssets()
 		// Create scene
 		m_scene = Scene::MakeUnique(Api);
 		//m_scene->SetRenderTarget(m_rtHDR, m_depth);
-		XUSG_N_RETURN(m_scene->LoadAssets(&sceneReader, pCommandList, m_shaderPool,
-			m_graphicsPipelineCache, m_computePipelineCache, m_pipelineLayoutCache,
-			m_descriptorTableCache, uploaders, FormatHDR, FormatDepth,
+		XUSG_N_RETURN(m_scene->LoadAssets(&sceneReader, pCommandList, m_shaderLib,
+			m_graphicsPipelineLib, m_computePipelineLib, m_pipelineLayoutLib,
+			m_descriptorTableLib, uploaders, FormatHDR, FormatDepth,
 			Format::D24_UNORM_S8_UINT, m_useIBL), ThrowIfFailed(E_FAIL));
 	}
 
 	{
 		m_postprocess = Postprocess::MakeUnique(Api);
-		XUSG_N_RETURN(m_postprocess->Init(m_device.get(), m_shaderPool, m_graphicsPipelineCache,
-			m_computePipelineCache, m_pipelineLayoutCache, m_descriptorTableCache,
+		XUSG_N_RETURN(m_postprocess->Init(m_device.get(), m_shaderLib, m_graphicsPipelineLib,
+			m_computePipelineLib, m_pipelineLayoutLib, m_descriptorTableLib,
 			FormatHDR, FormatLDR), ThrowIfFailed(E_FAIL));
 	}
 
@@ -281,7 +281,7 @@ void RenderingX::ResizeAssets()
 			const auto srvTable = Util::DescriptorTable::MakeUnique(Api);
 			const Descriptor srvs[] = { m_temporalColors[n]->GetSRV(), m_sceneDepth->GetSRV() };
 			srvTable->SetDescriptors(0, static_cast<uint32_t>(size(srvs)), srvs);
-			XUSG_X_RETURN(m_srvTables[SRV_ANTIALIASED + n], srvTable->GetCbvSrvUavTable(m_descriptorTableCache.get()), ThrowIfFailed(E_FAIL));
+			XUSG_X_RETURN(m_srvTables[SRV_ANTIALIASED + n], srvTable->GetCbvSrvUavTable(m_descriptorTableLib.get()), ThrowIfFailed(E_FAIL));
 		}
 	}
 
@@ -370,8 +370,8 @@ void RenderingX::OnWindowSizeChanged(int width, int height)
 		m_renderTargets[n].reset();
 		m_fenceValues[n] = m_fenceValues[m_frameIndex];
 	}
-	m_descriptorTableCache->ResetDescriptorPool(CBV_SRV_UAV_POOL);
-	m_descriptorTableCache->ResetDescriptorPool(RTV_POOL);
+	m_descriptorTableLib->ResetDescriptorPool(CBV_SRV_UAV_POOL);
+	m_descriptorTableLib->ResetDescriptorPool(RTV_POOL);
 
 	// Determine the render target size in pixels.
 	m_width = (max)(width, 1);
@@ -533,7 +533,7 @@ void RenderingX::PopulateCommandList()
 
 	// Record commands.
 	// Set Descriptor pool
-	const auto descriptorPool = m_descriptorTableCache->GetDescriptorPool(CBV_SRV_UAV_POOL);
+	const auto descriptorPool = m_descriptorTableLib->GetDescriptorPool(CBV_SRV_UAV_POOL);
 	pCommandList->SetDescriptorPools(1, &descriptorPool);
 
 	// Render scene
