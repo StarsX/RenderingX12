@@ -22,7 +22,7 @@
     {
       "Mesh": "Assets/TenshinX/TenshinX.sdkmesh",
       "Anim": "Assets/TenshinX/TenshinX.sdkmesh_anim",
-      "TwoSidedAll": 0
+      "TwoSidedAll": "false"
     }
   ],
   "Characters": [
@@ -52,6 +52,6 @@
   ],
 
   // Natural environment
-  "Water": 1,
+  "Water": "true",
   "SkyTexture": "Assets/sky.dds"
 }

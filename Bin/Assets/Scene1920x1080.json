@@ -40,7 +40,7 @@
   "StaticMeshes": [ 
     {
         "Mesh": "Assets/Island/Island.sdkmesh",
-        "TwoSidedAll": 0
+        "TwoSidedAll": "false"
     }
   ],
   "StaticModels": [
