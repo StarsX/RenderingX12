@@ -24,6 +24,7 @@ RenderingX::RenderingX(uint32_t width, uint32_t height, wstring name) :
 	m_useIBL(true),
 	m_showFPS(true),
 	m_isPaused(false),
+	m_useWarpDevice(false),
 	m_isTracking(false),
 	m_sceneFile(L"Assets/Scene.json"),
 	m_screenShot(0)
@@ -83,11 +84,13 @@ void RenderingX::LoadPipeline()
 		dxgiAdapter = nullptr;
 		ThrowIfFailed(m_factory->EnumAdapters1(i, &dxgiAdapter));
 
+		dxgiAdapter->GetDesc1(&dxgiAdapterDesc);
+		if (m_useWarpDevice && dxgiAdapterDesc.DeviceId != 0x8c) continue;
+
 		m_device = Device::MakeUnique(Api);
 		hr = m_device->Create(dxgiAdapter.get(), D3D_FEATURE_LEVEL_11_0);
 	}
 
-	dxgiAdapter->GetDesc1(&dxgiAdapterDesc);
 	if (dxgiAdapterDesc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
 		m_title += dxgiAdapterDesc.VendorId == 0x1414 && dxgiAdapterDesc.DeviceId == 0x8c ? L" (WARP)" : L" (Software)";
 	ThrowIfFailed(hr);
@@ -505,7 +508,10 @@ void RenderingX::ParseCommandLineArgs(wchar_t* argv[], int argc)
 
 	for (auto i = 1; i < argc; ++i)
 	{
-		if ((wcsncmp(argv[i], L"-scene", wcslen(argv[i])) == 0 ||
+		if (wcsncmp(argv[i], L"-warp", wcslen(argv[i])) == 0 ||
+			wcsncmp(argv[i], L"/warp", wcslen(argv[i])) == 0)
+			m_useWarpDevice = true;
+		else if ((wcsncmp(argv[i], L"-scene", wcslen(argv[i])) == 0 ||
 			wcsncmp(argv[i], L"/scene", wcslen(argv[i])) == 0) && i + 1 < argc)
 			m_sceneFile = argv[++i];
 		else if ((wcsncmp(argv[i], L"-width", wcslen(argv[i])) == 0 ||

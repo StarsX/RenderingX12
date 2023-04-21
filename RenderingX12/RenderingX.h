@@ -109,6 +109,7 @@ private:
 	bool		m_useIBL;
 	bool		m_showFPS;
 	bool		m_isPaused;
+	bool		m_useWarpDevice;
 	StepTimer	m_timer;
 
 	// User camera interactions

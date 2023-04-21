@@ -16,17 +16,17 @@
     <Filter Include="XUSG">
       <UniqueIdentifier>{4fb88c07-15f5-494c-a08f-945ac19ef282}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Import">
-      <UniqueIdentifier>{dcbb8536-cac4-48e1-b02a-e5d7c4ed3262}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Import\Header Files">
-      <UniqueIdentifier>{660b01b4-ff9a-40e8-a82b-8b385de7de5c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Import\Source Files">
-      <UniqueIdentifier>{b0603418-3c19-46bf-a607-46d653b458a8}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Assets">
       <UniqueIdentifier>{d5e634a3-cb4c-4360-9a62-de24d9095e40}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{dcbb8536-cac4-48e1-b02a-e5d7c4ed3262}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\Header Files">
+      <UniqueIdentifier>{660b01b4-ff9a-40e8-a82b-8b385de7de5c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common\Source Files">
+      <UniqueIdentifier>{b0603418-3c19-46bf-a607-46d653b458a8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -39,38 +39,38 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Import\DXFramework.h">
-      <Filter>Import\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Import\DXFrameworkHelper.h">
-      <Filter>Import\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Import\StepTimer.h">
-      <Filter>Import\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Import\tinyjson.hpp">
-      <Filter>Import\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Import\Win32Application.h">
-      <Filter>Import\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Import\d3d12.h">
-      <Filter>Import\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="XUSG\Advanced\XUSGAdvanced.h">
       <Filter>XUSG</Filter>
     </ClInclude>
     <ClInclude Include="XUSG\Core\XUSG.h">
       <Filter>XUSG</Filter>
     </ClInclude>
-    <ClInclude Include="Import\d3dcommon.h">
-      <Filter>Import\Header Files</Filter>
+    <ClInclude Include="Common\d3d12.h">
+      <Filter>Common\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Import\dxgiformat.h">
-      <Filter>Import\Header Files</Filter>
+    <ClInclude Include="Common\d3dcommon.h">
+      <Filter>Common\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Import\stb_image_write.h">
-      <Filter>Import\Header Files</Filter>
+    <ClInclude Include="Common\DXFramework.h">
+      <Filter>Common\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\DXFrameworkHelper.h">
+      <Filter>Common\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\dxgiformat.h">
+      <Filter>Common\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\stb_image_write.h">
+      <Filter>Common\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\StepTimer.h">
+      <Filter>Common\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\tinyjson.hpp">
+      <Filter>Common\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Common\Win32Application.h">
+      <Filter>Common\Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -83,14 +83,14 @@
     <ClCompile Include="RenderingX.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Import\DXFramework.cpp">
-      <Filter>Import\Source Files</Filter>
+    <ClCompile Include="Common\DXFramework.cpp">
+      <Filter>Common\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Import\Win32Application.cpp">
-      <Filter>Import\Source Files</Filter>
+    <ClCompile Include="Common\stb_image_write.cpp">
+      <Filter>Common\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Import\stb_image_write.cpp">
-      <Filter>Import\Source Files</Filter>
+    <ClCompile Include="Common\Win32Application.cpp">
+      <Filter>Common\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
