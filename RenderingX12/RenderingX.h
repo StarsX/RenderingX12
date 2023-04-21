@@ -91,7 +91,7 @@ private:
 	XUSG::RenderTarget::uptr	m_temporalColors[2];
 	XUSG::RenderTarget::uptr	m_metaBuffers[2];
 	XUSG::RenderTarget::sptr	m_sceneColor;
-	XUSG::RenderTarget::sptr	m_sceneMasks;
+	XUSG::RenderTarget::sptr	m_sceneShade;
 	XUSG::DepthStencil::sptr	m_sceneDepth;
 	XUSG::DescriptorTable		m_srvTables[NUM_SRV];
 	XMFLOAT4X4	m_proj;

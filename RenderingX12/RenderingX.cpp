@@ -243,10 +243,10 @@ void RenderingX::CreateResources()
 	XUSG_N_RETURN(m_sceneColor->Create(m_device.get(), m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
 		1, 1, nullptr, false, MemoryFlag::NONE, L"SceneColor"), ThrowIfFailed(E_FAIL));
 
-	// Create Mask RT
-	m_sceneMasks = RenderTarget::MakeShared(Api);
-	XUSG_N_RETURN(m_sceneMasks->Create(m_device.get(), m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
-		1, 1, nullptr, false, MemoryFlag::NONE, L"SceneMasks"), ThrowIfFailed(E_FAIL));
+	// Create shade-amount RT
+	m_sceneShade = RenderTarget::MakeShared(Api);
+	XUSG_N_RETURN(m_sceneShade->Create(m_device.get(), m_width, m_height, Format::R8_UNORM, 1, ResourceFlag::NONE,
+		1, 1, nullptr, false, MemoryFlag::NONE, L"SceneShadeAmount"), ThrowIfFailed(E_FAIL));
 
 	// Create a DSV
 	m_sceneDepth = DepthStencil::MakeShared(Api);
@@ -269,7 +269,7 @@ void RenderingX::ResizeAssets()
 	// Scene
 	vector<Resource::uptr> uploaders;
 	XUSG_N_RETURN(m_scene->ChangeWindowSize(pCommandList, uploaders,
-		m_sceneColor, m_sceneDepth, m_sceneMasks), ThrowIfFailed(E_FAIL));
+		m_sceneColor, m_sceneDepth, m_sceneShade), ThrowIfFailed(E_FAIL));
 
 	// Post process
 	{
@@ -280,7 +280,7 @@ void RenderingX::ResizeAssets()
 		{
 			XUSG_X_RETURN(m_srvTables[SRV_AA_INPUT + n], m_postprocess->CreateTemporalAASRVTable(
 				m_sceneColor->GetSRV(), m_temporalColors[!n]->GetSRV(), m_scene->GetGBuffer(Scene::MOTION_IDX)->GetSRV(),
-				m_sceneMasks->GetSRV(), m_metaBuffers[!n]->GetSRV()), ThrowIfFailed(E_FAIL));
+				m_sceneShade->GetSRV(), m_metaBuffers[!n]->GetSRV()), ThrowIfFailed(E_FAIL));
 
 			const auto srvTable = Util::DescriptorTable::MakeUnique(Api);
 			const Descriptor srvs[] = { m_temporalColors[n]->GetSRV(), m_sceneDepth->GetSRV() };
@@ -552,7 +552,7 @@ void RenderingX::PopulateCommandList()
 
 	// Temporal AA
 	RenderTarget* ppDsts[] = { m_temporalColors[m_frameParity].get(), m_metaBuffers[m_frameParity].get() };
-	Texture* ppSrcs[] = { m_sceneColor.get(), m_sceneMasks.get(), m_metaBuffers[!m_frameParity].get() };
+	Texture* ppSrcs[] = { m_sceneColor.get(), m_sceneShade.get(), m_metaBuffers[!m_frameParity].get() };
 	m_postprocess->Antialias(pCommandList, ppDsts, ppSrcs, m_srvTables[SRV_AA_INPUT + m_frameParity],
 		static_cast<uint8_t>(size(ppDsts)), static_cast<uint8_t>(size(ppSrcs)));
 

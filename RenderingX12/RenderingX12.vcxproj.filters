@@ -69,9 +69,6 @@
     <ClInclude Include="Import\dxgiformat.h">
       <Filter>Import\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Import\dxgicommon.h">
-      <Filter>Import\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Import\stb_image_write.h">
       <Filter>Import\Header Files</Filter>
     </ClInclude>
