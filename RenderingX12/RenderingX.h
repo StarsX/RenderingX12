@@ -60,9 +60,9 @@ private:
 	enum SrvTableIndex : uint8_t
 	{
 		SRV_AA_INPUT,
-		SRV_ANTIALIASED = SRV_AA_INPUT + 2,
+		SRV_HDR_IMAGE = SRV_AA_INPUT + 2,
 
-		NUM_SRV = SRV_ANTIALIASED + 2
+		NUM_SRV = SRV_HDR_IMAGE + 2
 	};
 
 	XUSG::com_ptr<IDXGIFactory5> m_factory;

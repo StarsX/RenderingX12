@@ -227,7 +227,7 @@ void RenderingX::CreateResources()
 	}
 
 	// Create TAA RTs
-	for (auto n = 0u; n < 2; ++n)
+	for (uint8_t n = 0; n < 2; ++n)
 	{
 		m_temporalColors[n] = RenderTarget::MakeUnique(Api);
 		XUSG_N_RETURN(m_temporalColors[n]->Create(m_device.get(), m_width, m_height, FormatHDR, 1, ResourceFlag::NONE,
@@ -276,16 +276,15 @@ void RenderingX::ResizeAssets()
 		XUSG_N_RETURN(m_postprocess->ChangeWindowSize(m_device.get(), m_sceneColor.get()), ThrowIfFailed(E_FAIL));
 
 		// Create Descriptor tables
-		for (auto n = 0u; n < 2; ++n)
+		for (uint8_t n = 0; n < 2; ++n)
 		{
-			XUSG_X_RETURN(m_srvTables[SRV_AA_INPUT + n], m_postprocess->CreateTemporalAASRVTable(
+			XUSG_X_RETURN(m_srvTables[SRV_AA_INPUT + n], m_postprocess->CreateTAASrvTable(
 				m_sceneColor->GetSRV(), m_temporalColors[!n]->GetSRV(), m_scene->GetGBuffer(Scene::MOTION_IDX)->GetSRV(),
 				m_sceneShade->GetSRV(), m_metaBuffers[!n]->GetSRV()), ThrowIfFailed(E_FAIL));
 
 			const auto srvTable = Util::DescriptorTable::MakeUnique(Api);
-			const Descriptor srvs[] = { m_temporalColors[n]->GetSRV(), m_sceneDepth->GetSRV() };
-			srvTable->SetDescriptors(0, static_cast<uint32_t>(size(srvs)), srvs);
-			XUSG_X_RETURN(m_srvTables[SRV_ANTIALIASED + n], srvTable->GetCbvSrvUavTable(m_descriptorTableLib.get()), ThrowIfFailed(E_FAIL));
+			srvTable->SetDescriptors(0, 1, &m_temporalColors[n]->GetSRV());
+			XUSG_X_RETURN(m_srvTables[SRV_HDR_IMAGE + n], srvTable->GetCbvSrvUavTable(m_descriptorTableLib.get()), ThrowIfFailed(E_FAIL));
 		}
 	}
 
@@ -558,7 +557,7 @@ void RenderingX::PopulateCommandList()
 
 	// Postprocessing
 	m_postprocess->Render(pCommandList, pRenderTarget, m_temporalColors[m_frameParity].get(),
-		m_srvTables[SRV_ANTIALIASED + m_frameParity]);
+		m_srvTables[SRV_HDR_IMAGE + m_frameParity]);
 	m_frameParity = !m_frameParity;
 
 	// Indicate that the back buffer will now be used to present.

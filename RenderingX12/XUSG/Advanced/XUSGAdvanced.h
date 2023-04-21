@@ -815,7 +815,7 @@ namespace XUSG
 		virtual void Unsharp(const CommandList* pCommandList, const Descriptor* pRTVs,
 			const DescriptorTable& srvTable, uint8_t numRTVs = 1) = 0;
 
-		virtual DescriptorTable CreateTemporalAASRVTable(const Descriptor& srvCurrent, const Descriptor& srvPrevious,
+		virtual DescriptorTable CreateTAASrvTable(const Descriptor& srvCurrent, const Descriptor& srvPrevious,
 			const Descriptor& srvVelocity, const Descriptor& srvShadeAmt, const Descriptor& srvMeta) = 0;
 
 		using uptr = std::unique_ptr<Postprocess>;
@@ -882,7 +882,7 @@ namespace XUSG
 		CS_SH_CUBE_MAP,
 		CS_SH_SUM,
 		CS_SH_NORMALIZE,
-		CS_RESAMPLE,
+		//CS_BLIT_2D,
 		CS_LUM_ADAPT
 	};
 }
