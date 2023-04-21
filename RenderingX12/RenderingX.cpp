@@ -199,7 +199,7 @@ void RenderingX::LoadAssets()
 		const auto viewDist = XMVectorGetW(focusDist);
 		const auto viewDisp = XMVectorSet(0.0f, 0.0f, viewDist, 0.0f);
 		const auto eyePt = focusDist - viewDisp;
-		const auto view = XMMatrixLookAtLH(eyePt, focusDist, XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f));
+		const auto view = XMMatrixLookAtLH(eyePt, focusDist, XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
 		XMStoreFloat3(&m_eyePt, eyePt);
 		XMStoreFloat4x4(&m_view, view);
 	}
