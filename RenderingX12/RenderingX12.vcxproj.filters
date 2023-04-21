@@ -92,6 +92,9 @@
     <ClCompile Include="Import\Win32Application.cpp">
       <Filter>Import\Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Import\stb_image_write.cpp">
+      <Filter>Import\Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RenderingX12.rc">
