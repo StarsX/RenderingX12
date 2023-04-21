@@ -25,8 +25,8 @@ RenderingX::RenderingX(uint32_t width, uint32_t height, wstring name) :
 	m_showFPS(true),
 	m_isPaused(false),
 	m_isTracking(false),
-	m_screenShot(0),
-	m_sceneFile(L"Assets/Scene.json")
+	m_sceneFile(L"Assets/Scene.json"),
+	m_screenShot(0)
 {
 #if defined (_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
@@ -631,7 +631,7 @@ void RenderingX::SaveImage(char const* fileName, Buffer* imageBuffer, uint32_t w
 
 	//stbi_write_png_compression_level = 1024;
 	vector<uint8_t> imageData(comp * w * h);
-	const auto sw = rowPitch / 4;
+	const auto sw = rowPitch >> 2; // rowPitch / 4, byte to pixel
 	for (auto i = 0u; i < h; ++i)
 		for (auto j = 0u; j < w; ++j)
 		{
