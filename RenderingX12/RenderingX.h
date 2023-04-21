@@ -93,17 +93,14 @@ private:
 	XUSG::RenderTarget::sptr	m_sceneColor;
 	XUSG::RenderTarget::sptr	m_sceneMasks;
 	XUSG::DepthStencil::sptr	m_sceneDepth;
+	XUSG::DescriptorTable		m_srvTables[NUM_SRV];
 	XMFLOAT4X4	m_proj;
 	XMFLOAT4X4	m_view;
 	XMFLOAT3	m_eyePt;
 
-	// Simple tone mapping
-	XUSG::PipelineLayout	m_pipelineLayout;
-	XUSG::Pipeline			m_pipeline;
-	XUSG::DescriptorTable	m_srvTables[NUM_SRV];
-
 	// Screen-shot helper
-	XUSG::Buffer::uptr		m_readBuffer;
+	XUSG::Buffer::uptr	m_readBuffer;
+	uint32_t			m_rowPitch;
 
 	// Synchronization objects.
 	uint8_t				m_frameParity;
@@ -122,10 +119,11 @@ private:
 	bool		m_isTracking;
 	XMFLOAT2	m_mousePt;
 
+	// User external settings
+	std::wstring m_sceneFile;
+
 	// Screen-shot state
 	uint8_t		m_screenShot;
-
-	std::wstring m_sceneFile;
 
 	void LoadPipeline();
 	void LoadAssets();
@@ -135,7 +133,8 @@ private:
 	void PopulateCommandList();
 	void WaitForGpu();
 	void MoveToNextFrame();
-	void SaveImage(char const* fileName, XUSG::Buffer* imageBuffer, uint32_t w, uint32_t h, uint8_t comp = 3);
+	void SaveImage(char const* fileName, XUSG::Buffer* imageBuffer,
+		uint32_t w, uint32_t h, uint32_t rowPitch, uint8_t comp = 3);
 	double CalculateFrameStats(float* fTimeStep = nullptr);
 
 	static const XUSG::Format FormatHDR = XUSG::Format::R11G11B10_FLOAT;
