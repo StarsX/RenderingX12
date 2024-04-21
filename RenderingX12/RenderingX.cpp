@@ -28,12 +28,12 @@ RenderingX::RenderingX(uint32_t width, uint32_t height, const wstring& name) :
 	m_fenceEvent(nullptr),
 	m_fence(nullptr),
 	m_fenceValues(),
+	m_deviceType(DEVICE_DISCRETE),
 	m_useIBL(true),
 	m_showFPS(true),
 	m_isPaused(false),
-	m_mousePt(),
-	m_deviceType(DEVICE_DISCRETE),
 	m_isTracking(false),
+	m_mousePt(),
 	m_sceneFile(L"Assets/Scene.json"),
 	m_readBuffer(nullptr),
 	m_rowPitch(0),
@@ -681,21 +681,20 @@ void RenderingX::SaveImage(char const* fileName, Buffer* pImageBuffer, uint32_t 
 
 double RenderingX::CalculateFrameStats(float* pTimeStep)
 {
-	static int frameCnt = 0;
-	static double elapsedTime = 0.0;
-	static double previousTime = 0.0;
+	static auto frameCnt = 0u;
+	static auto previousTime = 0.0;
 	const auto totalTime = m_timer.GetTotalSeconds();
 	++frameCnt;
 
-	const auto timeStep = static_cast<float>(totalTime - elapsedTime);
+	const auto timeStep = totalTime - previousTime;
 
 	// Compute averages over one second period.
-	if (totalTime - elapsedTime >= 1.0f)
+	if (timeStep >= 1.0)
 	{
-		float fps = static_cast<float>(frameCnt) / timeStep;	// Normalize to an exact second.
+		const auto fps = static_cast<float>(frameCnt / timeStep);	// Normalize to an exact second.
 
 		frameCnt = 0;
-		elapsedTime = totalTime;
+		previousTime = totalTime;
 
 		wstringstream windowText;
 		windowText << L"    [F1] ";
@@ -707,8 +706,7 @@ double RenderingX::CalculateFrameStats(float* pTimeStep)
 		SetCustomWindowText(windowText.str().c_str());
 	}
 
-	if (pTimeStep) *pTimeStep = static_cast<float>(totalTime - previousTime);
-	previousTime = totalTime;
+	if (pTimeStep) *pTimeStep = static_cast<float>(m_timer.GetElapsedSeconds());
 
 	return totalTime;
 }
