@@ -105,11 +105,11 @@ private:
 	uint64_t			m_fenceValues[FrameCount];
 
 	// Application state
+	DeviceType	m_deviceType;
+	StepTimer	m_timer;
 	bool		m_useIBL;
 	bool		m_showFPS;
 	bool		m_isPaused;
-	DeviceType	m_deviceType;
-	StepTimer	m_timer;
 
 	// User camera interactions
 	bool		m_isTracking;
