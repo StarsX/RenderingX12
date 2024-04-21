@@ -10,11 +10,14 @@
 //*********************************************************
 
 #include "RenderingX.h"
+#include "resource.h"
 
 _Use_decl_annotations_
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
 	RenderingX renderingX(1280, 800, L"XUSG Scene Rendering");
 
-	return Win32Application::Run(&renderingX, hInstance, nCmdShow);
+	const auto hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_RENDERINGX));
+
+	return Win32Application::Run(&renderingX, hInstance, nCmdShow, hIcon);
 }
