@@ -536,33 +536,47 @@ void RenderingX::OnMouseLeave()
 
 void RenderingX::ParseCommandLineArgs(wchar_t* argv[], int argc)
 {
-	DXFramework::ParseCommandLineArgs(argv, argc);
+	const auto str_tolower = [](wstring s)
+	{
+		transform(s.begin(), s.end(), s.begin(), [](wchar_t c) { return towlower(c); });
 
-	const auto isArgMatched = [&argv](int i, const wchar_t* argName)
+		return s;
+	};
+
+	const auto isArgMatched = [&argv, &str_tolower](int i, const wchar_t* paramName)
 	{
 		const auto& arg = argv[i];
 
-		return (arg[0] == L'-' || arg[0] == L'/') && wcscmp(&arg[1], argName) == 0;
+		return (arg[0] == L'-' || arg[0] == L'/')
+			&& str_tolower(&arg[1]) == str_tolower(paramName);
 	};
 
-	const auto hasArgValue = [&argv, &argc](int i)
+	const auto hasNextArgValue = [&argv, &argc](int i)
 	{
-		const auto n = i + 1;
-		const auto& arg = argv[n];
+		const auto& arg = argv[i + 1];
 
-		return n < argc && (arg[0] != L'-' || (arg[1] >= L'0' && arg[1] <= L'9')) && arg[0] != L'/';
+		return i + 1 < argc && arg[0] != L'/' &&
+			(arg[0] != L'-' || (arg[1] >= L'0' && arg[1] <= L'9') || arg[1] == L'.');
 	};
+
+	DXFramework::ParseCommandLineArgs(argv, argc);
 
 	for (auto i = 1; i < argc; ++i)
 	{
 		if (isArgMatched(i, L"warp")) m_deviceType = DEVICE_WARP;
 		else if (isArgMatched(i, L"uma")) m_deviceType = DEVICE_UMA;
-		else if ((isArgMatched(i, L"width") || isArgMatched(i, L"w")) && hasArgValue(i))
-			m_width = stoul(argv[++i]);
-		else if ((isArgMatched(i, L"height") || isArgMatched(i, L"h")) && hasArgValue(i))
-			m_height = stoul(argv[++i]);
-		else if (isArgMatched(i, L"scene") && hasArgValue(i))
-			m_sceneFile = argv[++i];
+		else if (isArgMatched(i, L"w") || isArgMatched(i, L"width"))
+		{
+			if (i + 1 < argc) i += swscanf_s(argv[i + 1], L"%u", &m_width);
+		}
+		else if (isArgMatched(i, L"h") || isArgMatched(i, L"height"))
+		{
+			if (i + 1 < argc) i += swscanf_s(argv[i + 1], L"%u", &m_height);
+		}
+		else if (isArgMatched(i, L"scene"))
+		{
+			if (hasNextArgValue(i)) m_sceneFile = argv[++i];
+		}
 		else if (isArgMatched(i, L"noIBL")) m_useIBL = false;
 	}
 }
