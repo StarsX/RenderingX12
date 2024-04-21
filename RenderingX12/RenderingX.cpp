@@ -690,7 +690,7 @@ double RenderingX::CalculateFrameStats(float* pTimeStep)
 	const auto timeStep = static_cast<float>(totalTime - elapsedTime);
 
 	// Compute averages over one second period.
-	if ((totalTime - elapsedTime) >= 1.0f)
+	if (totalTime - elapsedTime >= 1.0f)
 	{
 		float fps = static_cast<float>(frameCnt) / timeStep;	// Normalize to an exact second.
 
@@ -707,7 +707,7 @@ double RenderingX::CalculateFrameStats(float* pTimeStep)
 		SetCustomWindowText(windowText.str().c_str());
 	}
 
-	if (pTimeStep)* pTimeStep = static_cast<float>(totalTime - previousTime);
+	if (pTimeStep) *pTimeStep = static_cast<float>(totalTime - previousTime);
 	previousTime = totalTime;
 
 	return totalTime;
