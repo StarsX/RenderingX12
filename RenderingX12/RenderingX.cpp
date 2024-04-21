@@ -15,18 +15,28 @@
 using namespace std;
 using namespace XUSG;
 
-RenderingX::RenderingX(uint32_t width, uint32_t height, wstring name) :
+RenderingX::RenderingX(uint32_t width, uint32_t height, const wstring& name) :
 	DXFramework(width, height, name),
-	m_readBuffer(nullptr),
+	m_viewport(),
+	m_scissorRect(),
+	m_srvTables(),
+	m_proj(),
+	m_view(),
+	m_eyePt(),
 	m_frameParity(0),
 	m_frameIndex(0),
+	m_fenceEvent(nullptr),
 	m_fence(nullptr),
+	m_fenceValues(),
 	m_useIBL(true),
 	m_showFPS(true),
 	m_isPaused(false),
-	m_useWarpDevice(false),
+	m_mousePt(),
+	m_deviceType(DEVICE_DISCRETE),
 	m_isTracking(false),
 	m_sceneFile(L"Assets/Scene.json"),
+	m_readBuffer(nullptr),
+	m_rowPitch(0),
 	m_screenShot(0)
 {
 #if defined (_DEBUG)
@@ -78,17 +88,32 @@ void RenderingX::LoadPipeline()
 	DXGI_ADAPTER_DESC1 dxgiAdapterDesc;
 	com_ptr<IDXGIAdapter1> dxgiAdapter = nullptr;
 	com_ptr<ID3D12Device> device;
+	const auto useUMA = m_deviceType == DEVICE_UMA;
+	auto checkUMA = true;
 	auto hr = DXGI_ERROR_UNSUPPORTED;
-	for (auto i = 0u; hr == DXGI_ERROR_UNSUPPORTED; ++i)
+	for (uint8_t n = 0; n < 2; ++n)
 	{
-		dxgiAdapter = nullptr;
-		ThrowIfFailed(m_factory->EnumAdapters1(i, &dxgiAdapter));
+		for (auto i = 0u; hr == DXGI_ERROR_UNSUPPORTED; ++i)
+		{
+			dxgiAdapter = nullptr;
+			ThrowIfFailed(m_factory->EnumAdapters1(i, &dxgiAdapter));
 
-		dxgiAdapter->GetDesc1(&dxgiAdapterDesc);
-		if (m_useWarpDevice && dxgiAdapterDesc.DeviceId != 0x8c) continue;
+			dxgiAdapter->GetDesc1(&dxgiAdapterDesc);
+			if (m_deviceType == DEVICE_WARP && dxgiAdapterDesc.DeviceId != 0x8c) continue;
 
-		m_device = Device::MakeUnique(Api);
-		hr = m_device->Create(dxgiAdapter.get(), D3D_FEATURE_LEVEL_11_0);
+			m_device = Device::MakeUnique(Api);
+			hr = m_device->Create(dxgiAdapter.get(), D3D_FEATURE_LEVEL_11_0);
+
+			if (SUCCEEDED(hr) && checkUMA)
+			{
+				D3D12_FEATURE_DATA_ARCHITECTURE feature = {};
+				const auto pDevice = static_cast<ID3D12Device*>(m_device->GetHandle());
+				if (SUCCEEDED(pDevice->CheckFeatureSupport(D3D12_FEATURE_ARCHITECTURE, &feature, sizeof(feature))))
+					hr = feature.UMA ? (useUMA ? hr : DXGI_ERROR_UNSUPPORTED) : (useUMA ? DXGI_ERROR_UNSUPPORTED : hr);
+			}
+		}
+
+		checkUMA = false;
 	}
 
 	if (dxgiAdapterDesc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
@@ -510,7 +535,10 @@ void RenderingX::ParseCommandLineArgs(wchar_t* argv[], int argc)
 	{
 		if (wcsncmp(argv[i], L"-warp", wcslen(argv[i])) == 0 ||
 			wcsncmp(argv[i], L"/warp", wcslen(argv[i])) == 0)
-			m_useWarpDevice = true;
+			m_deviceType = DEVICE_WARP;
+		else if (wcsncmp(argv[i], L"-uma", wcslen(argv[i])) == 0 ||
+			wcsncmp(argv[i], L"/uma", wcslen(argv[i])) == 0)
+			m_deviceType = DEVICE_UMA;
 		else if ((wcsncmp(argv[i], L"-scene", wcslen(argv[i])) == 0 ||
 			wcsncmp(argv[i], L"/scene", wcslen(argv[i])) == 0) && i + 1 < argc)
 			m_sceneFile = argv[++i];

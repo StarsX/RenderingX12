@@ -26,7 +26,7 @@ using namespace DirectX;
 class RenderingX : public DXFramework
 {
 public:
-	RenderingX(uint32_t width, uint32_t height, std::wstring name);
+	RenderingX(uint32_t width, uint32_t height, const std::wstring& name);
 	virtual ~RenderingX();
 
 	virtual void OnInit();
@@ -46,16 +46,12 @@ public:
 	virtual void ParseCommandLineArgs(wchar_t* argv[], int argc);
 
 private:
-	enum RenderQueueType
+	enum DeviceType : uint8_t
 	{
-		OPAQUE_QUEUE,
-		ALPHA_QUEUE,
-
-		NUM_RENDER_QUEUE
+		DEVICE_DISCRETE,
+		DEVICE_UMA,
+		DEVICE_WARP
 	};
-
-	static const auto Api = XUSG::API::DIRECTX_12;
-	static const auto FrameCount = XUSG::Model::GetFrameCount();
 
 	enum SrvTableIndex : uint8_t
 	{
@@ -64,6 +60,9 @@ private:
 
 		NUM_SRV = SRV_HDR_IMAGE + 2
 	};
+
+	static const auto Api = XUSG::API::DIRECTX_12;
+	static const auto FrameCount = XUSG::Model::GetFrameCount();
 
 	XUSG::com_ptr<IDXGIFactory5> m_factory;
 
@@ -109,7 +108,7 @@ private:
 	bool		m_useIBL;
 	bool		m_showFPS;
 	bool		m_isPaused;
-	bool		m_useWarpDevice;
+	DeviceType	m_deviceType;
 	StepTimer	m_timer;
 
 	// User camera interactions
