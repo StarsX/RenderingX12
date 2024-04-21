@@ -103,18 +103,19 @@ void RenderingX::LoadPipeline()
 			if (SUCCEEDED(hr) && dxgiAdapter)
 			{
 				dxgiAdapter->GetDesc1(&dxgiAdapterDesc);
-				if (checkWARP) hr = dxgiAdapterDesc.DeviceId == 0x8c ? (useWARP ? hr : DXGI_ERROR_UNSUPPORTED) : (useWARP ? DXGI_ERROR_UNSUPPORTED : hr);
+				if (checkWARP) hr = dxgiAdapterDesc.VendorId == 0x1414 && dxgiAdapterDesc.DeviceId == 0x8c ?
+					(useWARP ? hr : DXGI_ERROR_UNSUPPORTED) : (useWARP ? DXGI_ERROR_UNSUPPORTED : hr);
+			}
 
-				if (SUCCEEDED(hr))
+			if (SUCCEEDED(hr))
+			{
+				m_device = Device::MakeUnique(Api);
+				if (SUCCEEDED(m_device->Create(dxgiAdapter.get(), D3D_FEATURE_LEVEL_11_0)) && checkUMA)
 				{
-					m_device = Device::MakeUnique(Api);
-					if (SUCCEEDED(m_device->Create(dxgiAdapter.get(), D3D_FEATURE_LEVEL_11_0)) && checkUMA)
-					{
-						D3D12_FEATURE_DATA_ARCHITECTURE feature = {};
-						const auto pDevice = static_cast<ID3D12Device*>(m_device->GetHandle());
-						if (SUCCEEDED(pDevice->CheckFeatureSupport(D3D12_FEATURE_ARCHITECTURE, &feature, sizeof(feature))))
-							hr = feature.UMA ? (useUMA ? hr : DXGI_ERROR_UNSUPPORTED) : (useUMA ? DXGI_ERROR_UNSUPPORTED : hr);
-					}
+					D3D12_FEATURE_DATA_ARCHITECTURE feature = {};
+					const auto pDevice = static_cast<ID3D12Device*>(m_device->GetHandle());
+					if (SUCCEEDED(pDevice->CheckFeatureSupport(D3D12_FEATURE_ARCHITECTURE, &feature, sizeof(feature))))
+						hr = feature.UMA ? (useUMA ? hr : DXGI_ERROR_UNSUPPORTED) : (useUMA ? DXGI_ERROR_UNSUPPORTED : hr);
 				}
 			}
 		}
@@ -125,7 +126,7 @@ void RenderingX::LoadPipeline()
 
 	if (dxgiAdapterDesc.VendorId == 0x1414 && dxgiAdapterDesc.DeviceId == 0x8c) m_title += L" (WARP)";
 	else if (dxgiAdapterDesc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) m_title += L" (Software)";
-	else m_title += wstring(L" (") + dxgiAdapterDesc.Description + L")";
+	else m_title += wstring(L" - ") + dxgiAdapterDesc.Description;
 	ThrowIfFailed(hr);
 
 	// Create the command queue.
@@ -427,7 +428,8 @@ void RenderingX::OnWindowSizeChanged(int width, int height)
 		{
 #ifdef _DEBUG
 			char buff[64] = {};
-			sprintf_s(buff, "Device Lost on ResizeBuffers: Reason code 0x%08X\n", (hr == DXGI_ERROR_DEVICE_REMOVED) ? m_device->GetDeviceRemovedReason() : hr);
+			sprintf_s(buff, "Device Lost on ResizeBuffers: Reason code 0x%08X\n",
+				(hr == DXGI_ERROR_DEVICE_REMOVED) ? m_device->GetDeviceRemovedReason() : hr);
 			OutputDebugStringA(buff);
 #endif
 			// If the device was removed for any reason, a new device and swap chain will need to be created.
@@ -436,12 +438,9 @@ void RenderingX::OnWindowSizeChanged(int width, int height)
 			// Everything is set up now. Do not continue execution of this method. HandleDeviceLost will reenter this method 
 			// and correctly set up the new device.
 			return;
-	}
-		else
-		{
-			ThrowIfFailed(hr);
 		}
-}
+		else ThrowIfFailed(hr);
+	}
 	else CreateSwapchain();
 
 	// Reset the index to the current back buffer.
