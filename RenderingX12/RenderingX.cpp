@@ -567,11 +567,11 @@ void RenderingX::ParseCommandLineArgs(wchar_t* argv[], int argc)
 		else if (isArgMatched(i, L"uma")) m_deviceType = DEVICE_UMA;
 		else if (isArgMatched(i, L"w") || isArgMatched(i, L"width"))
 		{
-			if (i + 1 < argc) i += swscanf_s(argv[i + 1], L"%u", &m_width);
+			if (hasNextArgValue(i)) i += swscanf_s(argv[i + 1], L"%u", &m_width);
 		}
 		else if (isArgMatched(i, L"h") || isArgMatched(i, L"height"))
 		{
-			if (i + 1 < argc) i += swscanf_s(argv[i + 1], L"%u", &m_height);
+			if (hasNextArgValue(i)) i += swscanf_s(argv[i + 1], L"%u", &m_height);
 		}
 		else if (isArgMatched(i, L"scene"))
 		{
