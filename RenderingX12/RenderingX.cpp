@@ -538,30 +538,32 @@ void RenderingX::ParseCommandLineArgs(wchar_t* argv[], int argc)
 {
 	DXFramework::ParseCommandLineArgs(argv, argc);
 
+	const auto isArgMatched = [&argv](int i, const wchar_t* argName)
+	{
+		const auto& arg = argv[i];
+
+		return (arg[0] == L'-' || arg[0] == L'/') && wcscmp(&arg[1], argName) == 0;
+	};
+
+	const auto hasArgValue = [&argv, &argc](int i)
+	{
+		const auto n = i + 1;
+		const auto& arg = argv[n];
+
+		return n < argc && (arg[0] != L'-' || (arg[1] >= L'0' && arg[1] <= L'9')) && arg[0] != L'/';
+	};
+
 	for (auto i = 1; i < argc; ++i)
 	{
-		if (wcsncmp(argv[i], L"-warp", wcslen(argv[i])) == 0 ||
-			wcsncmp(argv[i], L"/warp", wcslen(argv[i])) == 0)
-			m_deviceType = DEVICE_WARP;
-		else if (wcsncmp(argv[i], L"-uma", wcslen(argv[i])) == 0 ||
-			wcsncmp(argv[i], L"/uma", wcslen(argv[i])) == 0)
-			m_deviceType = DEVICE_UMA;
-		else if ((wcsncmp(argv[i], L"-scene", wcslen(argv[i])) == 0 ||
-			wcsncmp(argv[i], L"/scene", wcslen(argv[i])) == 0) && i + 1 < argc)
-			m_sceneFile = argv[++i];
-		else if ((wcsncmp(argv[i], L"-width", wcslen(argv[i])) == 0 ||
-			wcsncmp(argv[i], L"/width", wcslen(argv[i])) == 0 ||
-			wcsncmp(argv[i], L"-w", wcslen(argv[i])) == 0 ||
-			wcsncmp(argv[i], L"/w", wcslen(argv[i])) == 0) && i + 1 < argc)
+		if (isArgMatched(i, L"warp")) m_deviceType = DEVICE_WARP;
+		else if (isArgMatched(i, L"uma")) m_deviceType = DEVICE_UMA;
+		else if ((isArgMatched(i, L"width") || isArgMatched(i, L"w")) && hasArgValue(i))
 			m_width = stoul(argv[++i]);
-		else if ((wcsncmp(argv[i], L"-height", wcslen(argv[i])) == 0 ||
-			wcsncmp(argv[i], L"/height", wcslen(argv[i])) == 0 ||
-			wcsncmp(argv[i], L"-h", wcslen(argv[i])) == 0 ||
-			wcsncmp(argv[i], L"/h", wcslen(argv[i])) == 0) && i + 1 < argc)
+		else if ((isArgMatched(i, L"height") || isArgMatched(i, L"h")) && hasArgValue(i))
 			m_height = stoul(argv[++i]);
-		else if (wcsncmp(argv[i], L"-noIBL", wcslen(argv[i])) == 0 ||
-			wcsncmp(argv[i], L"/noIBL", wcslen(argv[i])) == 0)
-			m_useIBL = false;
+		else if (isArgMatched(i, L"scene") && hasArgValue(i))
+			m_sceneFile = argv[++i];
+		else if (isArgMatched(i, L"noIBL")) m_useIBL = false;
 	}
 }
 
