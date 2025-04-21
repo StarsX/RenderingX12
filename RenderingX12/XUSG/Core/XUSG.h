@@ -316,8 +316,8 @@ namespace XUSG
 	{
 		UNKNOWN,
 		ROW_MAJOR,
-		UNDEFINED_SWIZZLE,
-		STANDARD_SWIZZLE
+		TILE_UNDEFINED_SWIZZLE,
+		TILE_STANDARD_SWIZZLE
 	};
 
 	enum class DescriptorType : uint8_t
@@ -1342,7 +1342,7 @@ namespace XUSG
 		virtual void CopyResource(const Resource* pDstResource, const Resource* pSrcResource) const = 0;
 		virtual void CopyTiles(const Resource* pTiledResource, const TiledResourceCoord* pTileRegionStartCoord,
 			const TileRegionSize& tileRegionSize, const Resource* pBuffer, uint64_t bufferStartOffsetInBytes,
-			TileCopyFlag flags) const = 0;
+			TileCopyFlag flags = TileCopyFlag::NONE) const = 0;
 		virtual void ResolveSubresource(const Resource* pDstResource, uint32_t dstSubresource,
 			const Resource* pSrcResource, uint32_t srcSubresource, Format format) const = 0;
 		virtual void IASetPrimitiveTopology(PrimitiveTopology primitiveTopology) const = 0;
@@ -1458,10 +1458,10 @@ namespace XUSG
 			const TiledResourceCoord* pResourceRegionStartCoords, const TileRegionSize* pResourceRegionSizes,
 			const Heap* pHeap, uint32_t numHeapRanges, const TileRangeFlag* pHeapRangeFlags,
 			const uint32_t* pHeapRangeStartOffsets, const uint32_t* pHeapRangeTileCounts,
-			TileMappingFlag flags) = 0;
+			TileMappingFlag flags = TileMappingFlag::NONE) = 0;
 		virtual void CopyTileMappings(const Resource* pDstResource, const TiledResourceCoord* pDstRegionStartCoord,
 			const Resource* pSrcResource, const TiledResourceCoord* pSrcRegionStartCoordinate,
-			const TileRegionSize& regionSize, TileMappingFlag Flags) = 0;
+			const TileRegionSize& regionSize, TileMappingFlag Flags = TileMappingFlag::NONE) const = 0;
 
 		// Create from API native handle
 		virtual void Create(void* pHandle, const wchar_t* name = nullptr) = 0;
@@ -1580,9 +1580,9 @@ namespace XUSG
 		virtual uint64_t GetVirtualAddress(int offset = 0) const = 0;
 
 		virtual void Unmap(const Range* pWrittenRange = nullptr) = 0;
-		virtual void GetTiling(uint32_t* pTotalNumTiles, PackedMipInfo* pPackedMipInfo,
-			TileShape* pStandardTileShapeForNonPackedMips, uint32_t* pNumSubresourceTilings,
-			uint32_t firstSubresourceTiling, SubresourceTiling* pSubresourceTilingsForNonPackedMips) = 0;
+		virtual void GetTiling(uint32_t* pTotalNumTiles, PackedMipInfo* pPackedMipInfo = nullptr,
+			TileShape* pStandardTileShapeForNonPackedMips = nullptr, uint32_t* pNumSubresourceTilings = nullptr,
+			uint32_t firstSubresourceTiling = 0, SubresourceTiling* pSubresourceTilingsForNonPackedMips = nullptr) const = 0;
 
 		// Create from API native handle
 		virtual void Create(void* pDeviceHandle, void* pResourceHandle,
@@ -1599,6 +1599,8 @@ namespace XUSG
 		static sptr MakeShared(API api = API::DIRECTX_12);
 
 		static BarrierLayout GetBarrierLayout(ResourceState resourceState);
+
+		static size_t GetTiledResourceTileSize(API api = API::DIRECTX_12);
 	};
 
 	//--------------------------------------------------------------------------------------
@@ -2897,13 +2899,13 @@ namespace XUSG
 		};
 	}
 
+	XUSG_INTERFACE void GetPipelineCacheData(Pipeline pipeline, const void** ppData, size_t* pSize, API api = API::DIRECTX_12);
+
+	XUSG_INTERFACE void GetBlobData(const Blob& blob, const void** ppData, size_t* pSize, API api = API::DIRECTX_12);
+
 	XUSG_INTERFACE Blob GetPipelineCache(Pipeline pipeline, API api = API::DIRECTX_12);
 
 	XUSG_INTERFACE uint8_t Log2(uint32_t value);
-
-	XUSG_INTERFACE size_t GetBlobData(const Blob& blob, const void*& pData, API api = API::DIRECTX_12);
-
-	XUSG_INTERFACE size_t GetPipelineCacheData(Pipeline pipeline, const void*& pData, API api = API::DIRECTX_12);
 
 	XUSG_INTERFACE size_t Align(size_t size, size_t alignment);
 
