@@ -23,7 +23,7 @@ RenderingX::RenderingX(uint32_t width, uint32_t height, const wstring& name) :
 	m_proj(),
 	m_view(),
 	m_eyePt(),
-	m_frameParity(0),
+	m_frameOdevity(0),
 	m_frameIndex(0),
 	m_fenceEvent(nullptr),
 	m_fence(nullptr),
@@ -367,7 +367,8 @@ void RenderingX::OnUpdate()
 	const auto proj = XMLoadFloat4x4(&m_proj);
 	m_scene->Update(m_frameIndex, time, timeStep, view, proj, eyePt);
 	m_postprocess->Update(m_scene->GetCBVTable(Scene::CBV_IMMUTABLE),
-		m_scene->GetCBVTable(Scene::CBV_PER_FRAME_PS + m_frameIndex), timeStep);
+		m_scene->GetCBVTable(Scene::CBV_PER_FRAME_PS + m_frameIndex),
+		m_frameIndex, timeStep);
 }
 
 // Render the scene.
@@ -607,15 +608,16 @@ void RenderingX::PopulateCommandList()
 	m_scene->Render(pCommandList);
 
 	// Temporal AA
-	RenderTarget* ppDsts[] = { m_temporalColors[m_frameParity].get(), m_metaBuffers[m_frameParity].get() };
-	Texture* ppSrcs[] = { m_sceneColor.get(), m_sceneShade.get(), m_metaBuffers[!m_frameParity].get() };
-	m_postprocess->Antialias(pCommandList, ppDsts, ppSrcs, m_srvTables[SRV_AA_INPUT + m_frameParity],
-		static_cast<uint8_t>(size(ppDsts)), static_cast<uint8_t>(size(ppSrcs)));
+	const uint8_t inverseFrameOdevity = m_frameOdevity ? 0 : 1;
+	RenderTarget* ppDsts[] = { m_temporalColors[m_frameOdevity].get(), m_metaBuffers[m_frameOdevity].get() };
+	Texture* ppSrcs[] = { m_sceneColor.get(), m_sceneShade.get(), m_metaBuffers[inverseFrameOdevity].get() };
+	m_postprocess->Antialias(pCommandList, static_cast<uint8_t>(size(ppDsts)), ppDsts,
+		static_cast<uint8_t>(size(ppSrcs)), ppSrcs, m_srvTables[SRV_AA_INPUT + m_frameOdevity]);
 
 	// Postprocessing
-	m_postprocess->Render(pCommandList, pRenderTarget, m_temporalColors[m_frameParity].get(),
-		m_srvTables[SRV_HDR_IMAGE + m_frameParity]);
-	m_frameParity = !m_frameParity;
+	m_postprocess->Render(pCommandList, pRenderTarget, m_temporalColors[m_frameOdevity].get(),
+		m_srvTables[SRV_HDR_IMAGE + m_frameOdevity]);
+	m_frameOdevity = inverseFrameOdevity;
 
 	// Indicate that the back buffer will now be used to present.
 	ResourceBarrier barrier;
