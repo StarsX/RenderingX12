@@ -182,11 +182,13 @@ void RenderingX::LoadAssets()
 	m_computePipelineLib = Compute::PipelineLib::MakeShared(m_device.get());
 	m_pipelineLayoutLib = PipelineLayoutLib::MakeShared(m_device.get());
 
-	// Create the command list.
+	// Create the command list (register all frame allocators for Reset).
 	m_commandList = CommandList::MakeUnique();
 	const auto pCommandList = m_commandList.get();
+	CommandAllocator* pAllocators[FrameCount];
+	for (uint8_t n = 0; n < FrameCount; ++n) pAllocators[n] = m_commandAllocators[n].get();
 	XUSG_N_RETURN(pCommandList->Create(m_device.get(), 0, CommandListType::DIRECT,
-		m_commandAllocators[m_frameIndex].get(), nullptr), ThrowIfFailed(E_FAIL));
+		FrameCount, pAllocators, nullptr), ThrowIfFailed(E_FAIL));
 
 	// Load scene asset
 	vector<Resource::uptr> uploaders;
@@ -320,11 +322,10 @@ void RenderingX::CreateResources()
 
 void RenderingX::ResizeAssets()
 {
-	const auto pCommandAllocator = m_commandAllocators[m_frameIndex].get();
-	XUSG_N_RETURN(pCommandAllocator->Reset(), ThrowIfFailed(E_FAIL));
+	XUSG_N_RETURN(m_commandAllocators[m_frameIndex]->Reset(), ThrowIfFailed(E_FAIL));
 
 	const auto pCommandList = m_commandList.get();
-	XUSG_N_RETURN(pCommandList->Reset(pCommandAllocator, nullptr), ThrowIfFailed(E_FAIL));
+	XUSG_N_RETURN(pCommandList->Reset(m_frameIndex, nullptr), ThrowIfFailed(E_FAIL));
 
 	// Scene
 	vector<Resource::uptr> uploaders;
@@ -620,14 +621,13 @@ void RenderingX::PopulateCommandList()
 	// Command list allocators can only be reset when the associated 
 	// command lists have finished execution on the GPU; apps should use 
 	// fences to determine GPU execution progress.
-	const auto pCommandAllocator = m_commandAllocators[m_frameIndex].get();
-	XUSG_N_RETURN(pCommandAllocator->Reset(), ThrowIfFailed(E_FAIL));
+	XUSG_N_RETURN(m_commandAllocators[m_frameIndex]->Reset(), ThrowIfFailed(E_FAIL));
 
 	// However, when ExecuteCommandList() is called on a particular command 
 	// list, that command list can then be reset at any time and must be before 
 	// re-recording.
 	const auto pCommandList = m_commandList.get();
-	XUSG_N_RETURN(pCommandList->Reset(pCommandAllocator, nullptr), ThrowIfFailed(E_FAIL));
+	XUSG_N_RETURN(pCommandList->Reset(m_frameIndex, nullptr), ThrowIfFailed(E_FAIL));
 
 	// Record commands.
 	// Set descriptor heap
