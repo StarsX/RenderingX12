@@ -98,7 +98,7 @@ private:
 	XMFLOAT3	m_eyePt;
 
 	// Synchronization objects.
-	uint8_t				m_frameOdevity;
+	uint8_t				m_framePingPong;
 	uint8_t				m_frameIndex;
 	HANDLE				m_fenceEvent;
 	XUSG::Fence::uptr	m_fence;

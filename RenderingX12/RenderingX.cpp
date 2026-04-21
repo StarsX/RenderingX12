@@ -23,7 +23,7 @@ RenderingX::RenderingX(uint32_t width, uint32_t height, const wstring& name) :
 	m_proj(),
 	m_view(),
 	m_eyePt(),
-	m_frameOdevity(0),
+	m_framePingPong(0),
 	m_frameIndex(0),
 	m_fenceEvent(nullptr),
 	m_fence(nullptr),
@@ -98,7 +98,7 @@ void RenderingX::LoadPipeline()
 		for (auto i = 0u; hr == DXGI_ERROR_UNSUPPORTED; ++i)
 		{
 			dxgiAdapter = nullptr;
-			hr = m_factory->EnumAdapters1(i, &dxgiAdapter);
+			hr = m_factory->EnumAdapters1(i, dxgiAdapter.put());
 
 			if (SUCCEEDED(hr) && dxgiAdapter)
 			{
@@ -170,7 +170,7 @@ void RenderingX::LoadAssets()
 	vector<Resource::uptr> uploaders;
 	{
 		com_ptr<ID3DBlob> sceneFileBlob;
-		D3DReadFileToBlob(m_sceneFile.c_str(), &sceneFileBlob);
+		D3DReadFileToBlob(m_sceneFile.c_str(), sceneFileBlob.put());
 		XUSG_N_RETURN(sceneFileBlob, ThrowIfFailed(E_FAIL));
 
 		const string sceneString = static_cast<char*>(sceneFileBlob->GetBufferPointer());
@@ -560,8 +560,6 @@ void RenderingX::ParseCommandLineArgs(wchar_t* argv[], int argc)
 			(arg[0] != L'-' || (arg[1] >= L'0' && arg[1] <= L'9') || arg[1] == L'.');
 	};
 
-	DXFramework::ParseCommandLineArgs(argv, argc);
-
 	for (auto i = 1; i < argc; ++i)
 	{
 		if (isArgMatched(i, L"warp")) m_deviceType = DEVICE_WARP;
@@ -608,16 +606,16 @@ void RenderingX::PopulateCommandList()
 	m_scene->Render(pCommandList);
 
 	// Temporal AA
-	const uint8_t inverseFrameOdevity = m_frameOdevity ? 0 : 1;
-	RenderTarget* ppDsts[] = { m_temporalColors[m_frameOdevity].get(), m_metaBuffers[m_frameOdevity].get() };
-	Texture* ppSrcs[] = { m_sceneColor.get(), m_sceneShade.get(), m_metaBuffers[inverseFrameOdevity].get() };
+	const uint8_t inverseFramePingPong = m_framePingPong ? 0 : 1;
+	RenderTarget* ppDsts[] = { m_temporalColors[m_framePingPong].get(), m_metaBuffers[m_framePingPong].get() };
+	Texture* ppSrcs[] = { m_sceneColor.get(), m_sceneShade.get(), m_metaBuffers[inverseFramePingPong].get() };
 	m_postprocess->Antialias(pCommandList, static_cast<uint8_t>(size(ppDsts)), ppDsts,
-		static_cast<uint8_t>(size(ppSrcs)), ppSrcs, m_srvTables[SRV_AA_INPUT + m_frameOdevity]);
+		static_cast<uint8_t>(size(ppSrcs)), ppSrcs, m_srvTables[SRV_AA_INPUT + m_framePingPong]);
 
 	// Postprocessing
-	m_postprocess->Render(pCommandList, pRenderTarget, m_temporalColors[m_frameOdevity].get(),
-		m_srvTables[SRV_HDR_IMAGE + m_frameOdevity]);
-	m_frameOdevity = inverseFrameOdevity;
+	m_postprocess->Render(pCommandList, pRenderTarget, m_temporalColors[m_framePingPong].get(),
+		m_srvTables[SRV_HDR_IMAGE + m_framePingPong]);
+	m_framePingPong = inverseFramePingPong;
 
 	// Indicate that the back buffer will now be used to present.
 	ResourceBarrier barrier;
