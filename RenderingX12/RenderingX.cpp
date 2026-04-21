@@ -39,7 +39,7 @@ RenderingX::RenderingX(uint32_t width, uint32_t height, const wstring& name) :
 	m_rowPitch(0),
 	m_screenShot(0)
 {
-#if defined (_DEBUG)
+#if defined(_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 	AllocConsole();
 	FILE* stream;
@@ -51,7 +51,7 @@ RenderingX::RenderingX(uint32_t width, uint32_t height, const wstring& name) :
 
 RenderingX::~RenderingX()
 {
-#if defined (_DEBUG)
+#if defined(_DEBUG)
 	FreeConsole();
 #endif
 }
@@ -100,7 +100,6 @@ void RenderingX::LoadPipeline()
 
 		DXGI_ADAPTER_DESC1 dxgiAdapterDesc;
 		com_ptr<IDXGIAdapter1> dxgiAdapter = nullptr;
-		com_ptr<ID3D12Device> device;
 		const auto useUMA = m_deviceType == DEVICE_UMA;
 		const auto useWARP = m_deviceType == DEVICE_WARP;
 		auto checkUMA = true, checkWARP = true;
@@ -144,7 +143,7 @@ void RenderingX::LoadPipeline()
 		ThrowIfFailed(hr);
 	}
 
-	SetWindowText(Win32Application::GetHwnd(), m_title.c_str());
+	//SetWindowText(Win32Application::GetHwnd(), m_title.c_str());
 
 	// Create the command queue.
 	m_commandQueue = CommandQueue::MakeUnique();
@@ -153,8 +152,7 @@ void RenderingX::LoadPipeline()
 
 	// Vulkan swapchain creation sends messages to this window. The window has to
 	// be visible first, or the driver blocks the UI thread forever.
-	if (Device::GetApi() == API::VULKAN)
-		ShowWindow(Win32Application::GetHwnd(), SW_SHOW);
+	if (Device::GetApi() == API::VULKAN) ShowWindow(Win32Application::GetHwnd(), SW_SHOW);
 
 	// Create the swap chain.
 	CreateSwapchain();
@@ -274,8 +272,7 @@ void RenderingX::CreateSwapchain()
 		FrameCount, m_width, m_height, FormatLDR, SwapChainFlag::ALLOW_TEARING), ThrowIfFailed(E_FAIL));
 
 	// This class does not support exclusive full-screen mode and prevents DXGI from responding to the ALT+ENTER shortcut.
-	if (m_factory)
-		ThrowIfFailed(m_factory->MakeWindowAssociation(Win32Application::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
+	if (m_factory) ThrowIfFailed(m_factory->MakeWindowAssociation(Win32Application::GetHwnd(), DXGI_MWA_NO_ALT_ENTER));
 }
 
 void RenderingX::CreateResources()
