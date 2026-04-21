@@ -65,10 +65,6 @@ private:
 
 	XUSG::com_ptr<IDXGIFactory5> m_factory;
 
-	// Destroyed last. Queues, allocators, swapchain, and pipeline libraries
-	// still call into the device from their destructors.
-	XUSG::Device::uptr			m_device;
-
 	XUSG::ShaderLib::sptr				m_shaderLib;
 	XUSG::Graphics::PipelineLib::sptr	m_graphicsPipelineLib;
 	XUSG::Compute::PipelineLib::sptr	m_computePipelineLib;
@@ -79,6 +75,9 @@ private:
 	XUSG::Viewport	m_viewport;
 	XUSG::RectRange	m_scissorRect;
 
+	// Destroyed last. Queues, allocators, swapchain, and pipeline libraries
+	// still call into the device from their destructors.
+	XUSG::Device::uptr				m_device;
 	XUSG::SwapChain::uptr			m_swapChain;
 	XUSG::CommandAllocator::uptr	m_commandAllocators[FrameCount];
 	XUSG::CommandQueue::uptr		m_commandQueue;
