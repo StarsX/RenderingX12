@@ -1056,13 +1056,13 @@ namespace XUSG
 	struct TextureCopyLocation
 	{
 		TextureCopyLocation() = default;
-		TextureCopyLocation(const Resource* pRes, uint32_t sub)
+		TextureCopyLocation(Resource* pRes, uint32_t sub)
 		{
 			pResource = pRes;
 			SubresourceIndex = sub;
 		}
 
-		const Resource* pResource;
+		Resource* pResource;
 		uint32_t SubresourceIndex;
 	};
 
@@ -1130,11 +1130,11 @@ namespace XUSG
 	struct DescriptorHeader
 	{
 		ResourceViewType Type;
-		const Resource* pResource;
+		Resource* pResource;
 		union
 		{
-			const Resource* pCounterResource;
-			const Resource* pSamplerFeedbackTarget;
+			Resource* pCounterResource;
+			Resource* pSamplerFeedbackTarget;
 		};
 	};
 
@@ -1409,12 +1409,10 @@ namespace XUSG
 			uint32_t numRects = 0, const RectRange* pRects = nullptr) = 0;
 		virtual void ClearRenderTargetView(const Descriptor& renderTargetView, const float colorRGBA[4],
 			uint32_t numRects = 0, const RectRange* pRects = nullptr) = 0;
-		virtual void ClearUnorderedAccessViewUint(const DescriptorTable& descriptorTable,
-			const Descriptor& descriptor, const Resource* pResource, const uint32_t values[4],
-			uint32_t numRects = 0, const RectRange* pRects = nullptr) = 0;
-		virtual void ClearUnorderedAccessViewFloat(const DescriptorTable& descriptorTable,
-			const Descriptor& descriptor, const Resource* pResource, const float values[4],
-			uint32_t numRects = 0, const RectRange* pRects = nullptr) = 0;
+		virtual void ClearUnorderedAccessViewUint(const DescriptorTable& descriptorTable, const Descriptor& descriptor,
+			const uint32_t values[4], uint32_t numRects = 0, const RectRange* pRects = nullptr) = 0;
+		virtual void ClearUnorderedAccessViewFloat(const DescriptorTable& descriptorTable, const Descriptor& descriptor,
+			const float values[4], uint32_t numRects = 0, const RectRange* pRects = nullptr) = 0;
 		virtual void DiscardResource(const Resource*pResource, uint32_t numRects, const RectRange* pRects,
 			uint32_t firstSubresource, uint32_t numSubresources) = 0;
 		virtual void BeginQuery(const QueryHeap& queryHeap, QueryType type, uint32_t index) const = 0;
