@@ -159,10 +159,8 @@ void RenderingX::LoadPipeline()
 	// Create the swap chain.
 	CreateSwapchain();
 
-	// Vulkan acquire waits until the window is shown, which happens after OnInit.
-	// (Core uses user backbuffers; index is DXGI-style and needs no WSI acquire.)
-	if (Device::GetApi() == API::VULKAN) m_frameIndex = 0;
-	else m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+	// Window is shown above for Vulkan so acquire is safe (DX12-style WSI path).
+	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 
 	// Create a command allocator for each frame.
 	for (uint8_t n = 0; n < FrameCount; ++n)
