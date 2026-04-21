@@ -412,7 +412,6 @@ void RenderingX::OnWindowSizeChanged(int width, int height)
 		m_fenceValues[n] = m_fenceValues[m_frameIndex];
 	}
 	m_descriptorTableLib->ResetDescriptorHeap(CBV_SRV_UAV_HEAP);
-	m_descriptorTableLib->ResetDescriptorHeap(RTV_HEAP);
 
 	// Determine the render target size in pixels.
 	m_width = (max)(width, 1);
